@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="@color/black">
+
+    <TextView
+        android:layout_width="100dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginEnd="10dp"
+        android:layout_marginBottom="10dp"
+        android:paddingStart="5dp"
+        android:background="@color/white"
+        android:text="New Task"
+        android:textColor="@color/black"
+        android:textSize="20dp" />
+
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:cardCornerRadius="10dp"
+        android:layout_marginTop="40dp"
+        android:layout_marginStart="10dp"
+        android:layout_marginEnd="10dp"
+        android:layout_marginBottom="10dp">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:id="@+id/count"
+            android:layout_width="30dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:layout_marginTop="10dp"
+            android:text="1"
+            android:textColor="@color/black"
+            android:textSize="20dp" />
+
+        <View
+            android:id="@+id/vertical_row"
+            android:layout_width="1dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="1dp"
+            android:layout_marginTop="0dp"
+            android:layout_toEndOf="@+id/count"
+            android:background="#000000" />
+
+        <Button
+            android:id="@+id/timeButton"
+            style="?android:spinnerStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:layout_toEndOf="@id/count"
+            android:onClick="popTimePicker"
+            android:text="3:00 PM"
+            android:textSize="20dp" />
+
+        <ImageView
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_alignParentEnd="true"
+            android:layout_marginTop="10dp"
+            android:layout_marginEnd="10dp"
+            android:src="@drawable/actionbar_menu" />
+        <View
+            android:id="@+id/horizontal_row"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_below="@id/timeButton"
+            android:background="#000000" />
+
+        <EditText
+            android:id="@+id/title"
+            android:layout_width="200dp"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/horizontal_row"
+            android:inputType="textCapWords"
+            android:hint="Title"
+            android:textSize="20dp" />
+
+        <EditText
+            android:id="@+id/description"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/title"
+            android:layout_marginTop="10dp"
+            android:hint="Description"
+            android:inputType="textMultiLine|textCapSentences"
+            android:textSize="15dp" />
+
+    </RelativeLayout>
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/save_icon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentBottom="true"
+            android:layout_gravity="bottom|end"
+            android:layout_marginEnd="10dp"
+            android:layout_marginBottom="10dp"
+            android:backgroundTint="#000000"
+            android:clickable="true"
+            android:focusable="true"
+            android:src="@drawable/actionbar_save_task"
+            app:maxImageSize="40dp"
+            android:contentDescription="Save Task" />
+    </androidx.cardview.widget.CardView>
+
+</RelativeLayout>

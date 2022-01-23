@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="240dp"
+    android:orientation="vertical"
+    android:background="@color/black">
+
+
+<!--    <ImageView-->
+<!--        android:id="@+id/logo_menu"-->
+<!--        android:layout_width="220dp"-->
+<!--        android:layout_height="200dp"-->
+<!--        android:src="@drawable/robo"-->
+<!--        android:layout_centerHorizontal="true"/>-->
+
+<!--    <TextView-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:text="@string/schedule_planner"-->
+<!--        android:textColor="@color/white"-->
+<!--        android:layout_centerHorizontal="true"-->
+<!--        android:layout_below="@+id/logo_menu"-->
+<!--        android:textSize="25sp"/>-->
+
+    <ImageView
+        android:id="@+id/logo_menu"
+        android:layout_width="180dp"
+        android:layout_height="150dp"
+        android:layout_marginStart="-30dp"
+        android:layout_marginTop="35dp"
+        android:src="@drawable/robo" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/logo_menu"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="15dp"
+        android:text="@string/schedule_planner"
+        android:textColor="@color/white"
+        android:textSize="19dp" />
+
+</RelativeLayout>

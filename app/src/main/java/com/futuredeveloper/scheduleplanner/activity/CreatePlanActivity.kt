@@ -1,0 +1,222 @@
+package com.futuredeveloper.scheduleplanner.activity
+
+import android.app.AlertDialog
+import android.app.DatePickerDialog
+import android.app.DatePickerDialog.OnDateSetListener
+import android.content.Context
+import android.content.Intent
+import android.os.AsyncTask
+import android.os.Bundle
+import android.view.MenuItem
+import android.view.View
+import android.widget.Button
+import android.widget.EditText
+import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.ViewModelProvider
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import androidx.room.Room
+import com.futuredeveloper.scheduleplanner.R
+import com.futuredeveloper.scheduleplanner.adapter.CreatePlanAdapter
+import com.futuredeveloper.scheduleplanner.database.ScheduleEntity
+import com.futuredeveloper.scheduleplanner.database.ScheduleRoomDatabase
+import com.futuredeveloper.scheduleplanner.database.TaskDatabase
+import com.futuredeveloper.scheduleplanner.database.TaskEntity
+import com.futuredeveloper.scheduleplanner.models.Task
+import com.google.android.material.floatingactionbutton.FloatingActionButton
+import java.util.*
+import kotlin.collections.ArrayList
+
+
+class CreatePlanActivity : AppCompatActivity() {
+    private lateinit var toolbar: androidx.appcompat.widget.Toolbar
+    private var datePickerDialog: DatePickerDialog? = null
+    private var dateButton: Button? = null
+    private lateinit var recyclerHome: RecyclerView
+    private lateinit var layoutManager: RecyclerView.LayoutManager
+    private lateinit var recyclerAdapter: CreatePlanAdapter
+    private lateinit var createIcon: FloatingActionButton
+    private lateinit var saveSchedule: FloatingActionButton
+    private lateinit var title: EditText
+    private lateinit var unchangedDate: String
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_create_plan)
+
+        toolbar = findViewById(R.id.toolbar1)
+        createIcon = findViewById(R.id.create_icon)
+        recyclerHome = findViewById(R.id.recyclerHome)
+        layoutManager = LinearLayoutManager(this)
+        saveSchedule = findViewById(R.id.save_icon)
+        title = findViewById(R.id.title)
+
+        setUpToolbar()
+
+        //Date picker
+        initDatePicker()
+        dateButton = findViewById(R.id.datePickerButton)
+
+        val date = intent.getStringExtra("date")
+        if(date.equals("0")){
+            dateButton?.text = getTodaysDate()
+        }else{
+            dateButton?.text = date
+        }
+        unchangedDate = dateButton?.text.toString()
+        //finished
+
+        val menuList = RetrieveTaskItems(this,dateButton?.text.toString()).execute().get()
+
+        //Recycler Adapter
+        recyclerHome = findViewById(R.id.recyclerHome)
+        layoutManager = LinearLayoutManager(this)
+        createIcon = findViewById(R.id.create_icon)
+        recyclerAdapter =
+            CreatePlanAdapter(this, menuList)
+        recyclerHome.adapter = recyclerAdapter
+        recyclerHome.layoutManager = layoutManager
+        //finished
+
+        createIcon.setOnClickListener {
+            val intent = Intent(this@CreatePlanActivity, CreateTaskActivity::class.java).apply {
+                putExtra("date",dateButton?.text.toString())
+            }
+            startActivity(intent)
+        }
+
+        saveSchedule.setOnClickListener {
+            val tasks = ArrayList<Task>()
+
+            for(taskEntity: TaskEntity in menuList){
+                val task = Task(taskEntity.task_id, taskEntity.taskTime, taskEntity.taskTitle, taskEntity.taskDescription)
+                tasks.add(task)
+            }
+
+            val schedule = ScheduleEntity(dateButton?.text.toString(),title.text.toString(),"",tasks)
+            val async = CreatePlanActivity.DBAsyncTask1(
+                this,
+                 schedule,
+                1
+            ).execute()
+            val result = async.get()
+            if (result) {
+                Toast.makeText(
+                    this,
+                    "Schedule Added Successfully!",
+                    Toast.LENGTH_SHORT
+                ).show()
+                val intent = Intent(this@CreatePlanActivity, MainActivity::class.java)
+                startActivity(intent)
+                finish()
+            } else {
+                Toast.makeText(
+                    this,
+                    "Some error occurred!",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+    }
+
+    private fun setUpToolbar(){
+        setSupportActionBar(toolbar)
+        supportActionBar?.title = "Create Schedule"
+        supportActionBar?.setHomeButtonEnabled(true)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+    }
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        val id = item.itemId
+        if (id == android.R.id.home) {
+            onBackPressed()
+        }
+        return super.onOptionsItemSelected(item)
+    }
+
+    //For DatePicker
+    private fun getTodaysDate(): String {
+        val cal = Calendar.getInstance()
+        val year = cal[Calendar.YEAR]
+        var month = cal[Calendar.MONTH]
+        month += 1
+        val day = cal[Calendar.DAY_OF_MONTH]
+        return makeDateString(day, month, year)
+    }
+    private fun initDatePicker() {
+        val dateSetListener =
+            OnDateSetListener { datePicker, year, month, day ->
+                var month = month
+                month = month + 1
+                val date: String = makeDateString(day, month, year)
+                dateButton?.text = date
+
+                if(dateButton?.text.toString() != unchangedDate){
+                    val refresh = Intent(this, CreatePlanActivity::class.java)
+                    refresh.putExtra("date",dateButton?.text.toString())
+                    startActivity(refresh)
+                    finish()
+                }
+            }
+        val cal = Calendar.getInstance()
+        val year = cal[Calendar.YEAR]
+        val month = cal[Calendar.MONTH]
+        val day = cal[Calendar.DAY_OF_MONTH]
+        val style: Int = AlertDialog.THEME_HOLO_LIGHT
+        datePickerDialog = DatePickerDialog(this, style, dateSetListener, year, month, day)
+        //datePickerDialog.getDatePicker().setMaxDate(System.currentTimeMillis());
+    }
+    private fun makeDateString(day: Int, month: Int, year: Int): String {
+        return day.toString() + " " + getMonthFormat(month) + " " + year
+    }
+    private fun getMonthFormat(month: Int): String {
+        if (month == 1) return "JAN"
+        if (month == 2) return "FEB"
+        if (month == 3) return "MAR"
+        if (month == 4) return "APR"
+        if (month == 5) return "MAY"
+        if (month == 6) return "JUN"
+        if (month == 7) return "JUL"
+        if (month == 8) return "AUG"
+        if (month == 9) return "SEP"
+        if (month == 10) return "OCT"
+        if (month == 11) return "NOV"
+        return if (month == 12) "DEC" else "JAN"
+    }
+    fun openDatePicker(view: View?) {
+        datePickerDialog?.show()
+    }
+
+    class DBAsyncTask1(val context: Context, val scheduleEntity: ScheduleEntity, private val mode: Int) :
+        AsyncTask<Void, Void, Boolean>() {
+
+        override fun doInBackground(vararg params: Void?): Boolean {
+            val db = Room.databaseBuilder(context, ScheduleRoomDatabase::class.java, "Schedule-Db").build()
+
+            when (mode) {
+                1 -> {
+                    db.scheduleDao().insertSchedule(scheduleEntity)
+                    db.close()
+                    return true
+                }
+                2 -> {
+                    db.scheduleDao().deleteSchedule(scheduleEntity)
+                    db.close()
+                    return true
+                }
+            }
+            return false
+        }
+    }
+
+
+    class RetrieveTaskItems(val context: Context, val date: String) : AsyncTask<Void, Void, List<TaskEntity>>() {
+        override fun doInBackground(vararg params: Void?): List<TaskEntity> {
+            val db = Room.databaseBuilder(context, TaskDatabase::class.java, "Task-Db").build()
+            val ret = db.taskDao().getTaskByDate(date)
+            db.close()
+            return ret
+        }
+    }
+
+}
