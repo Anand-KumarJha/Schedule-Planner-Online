@@ -58,7 +58,7 @@
             android:layout_marginStart="10dp"
             android:layout_toEndOf="@id/count"
             android:onClick="popTimePicker"
-            android:text="3:00 PM"
+            android:text="12:00 AM"
             android:textSize="20dp" />
 
         <ImageView

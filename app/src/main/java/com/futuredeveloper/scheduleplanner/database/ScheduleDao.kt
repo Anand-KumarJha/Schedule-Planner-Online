@@ -8,6 +8,9 @@ import androidx.room.Query
 
 @Dao
 interface ScheduleDao {
+    @Query("SELECT count(*) FROM schedule_table WHERE schedule_id = :schedule_id")
+    fun deleteIfExist(schedule_id: String):Int
+
     @Insert
     //use suspend fun
     fun insertSchedule(schedule: ScheduleEntity)
@@ -16,6 +19,9 @@ interface ScheduleDao {
     //use suspend fun
     fun deleteSchedule(schedule: ScheduleEntity)
 
-    @Query("SELECT * FROM schedule_table")
+    @Query("SELECT * FROM schedule_table ORDER BY schedule_id ASC")
     fun getAllSchedule(): List<ScheduleEntity>
+
+    @Query("DELETE FROM schedule_table WHERE schedule_id = :id")
+    fun deleteById(id: String)
 }

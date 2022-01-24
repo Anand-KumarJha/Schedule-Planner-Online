@@ -1,5 +1,6 @@
 package com.futuredeveloper.scheduleplanner.activity
 
+import android.app.Activity
 import android.app.AlertDialog
 import android.app.DatePickerDialog
 import android.app.DatePickerDialog.OnDateSetListener
@@ -13,7 +14,6 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.room.Room
@@ -23,6 +23,7 @@ import com.futuredeveloper.scheduleplanner.database.ScheduleEntity
 import com.futuredeveloper.scheduleplanner.database.ScheduleRoomDatabase
 import com.futuredeveloper.scheduleplanner.database.TaskDatabase
 import com.futuredeveloper.scheduleplanner.database.TaskEntity
+import com.futuredeveloper.scheduleplanner.fragment.HomeFragment
 import com.futuredeveloper.scheduleplanner.models.Task
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import java.util.*
@@ -94,7 +95,9 @@ class CreatePlanActivity : AppCompatActivity() {
                 tasks.add(task)
             }
 
-            val schedule = ScheduleEntity(dateButton?.text.toString(),title.text.toString(),"",tasks)
+            val date1 = makeDate(dateButton?.text.toString())
+            val schedule = ScheduleEntity(date1,dateButton?.text.toString(),title.text.toString(),"",tasks)
+
             val async = CreatePlanActivity.DBAsyncTask1(
                 this,
                  schedule,
@@ -187,6 +190,61 @@ class CreatePlanActivity : AppCompatActivity() {
         datePickerDialog?.show()
     }
 
+    //For date sorting
+    private var date1 = StringBuilder()
+    private fun makeDate(scheduleDate: String): String{
+        var count = 0
+
+        var day = ""
+        var month = ""
+        var year = ""
+
+        val temp = StringBuilder()
+
+        for (i in scheduleDate.indices){
+
+            if(scheduleDate[i] != ' '){
+                temp.append(scheduleDate[i])
+            }else{
+                if(count == 0){
+                    if(temp.toString().length < 2){
+                        day = "0${temp.toString()}"
+                    }else{
+                        day = temp.toString()
+                    }
+                }else if(count == 1){
+                    month = getMonthFormat1(temp.toString()).toString()
+                    if(month.toString().length < 2){
+                        month = "0${month.toString()}"
+                    }
+                }
+                temp.clear()
+                count++
+            }
+        }
+        year = temp.toString()
+        date1.clear()
+        date1.append(year).append(month).append(day)
+        println("date = $date1, year = $year, month = $month, day = $day")
+        return date1.toString()
+    }
+
+    fun getMonthFormat1(month: String): Int {
+        if (month == "JAN") return 1
+        if (month == "FEB") return 2
+        if (month == "MAR") return 3
+        if (month == "APR") return 4
+        if (month == "MAY") return 5
+        if (month == "JUN") return 6
+        if (month == "JUL") return 7
+        if (month == "AUG") return 8
+        if (month == "SEP") return 9
+        if (month == "OCT") return 10
+        if (month == "NOV") return 11
+        return if (month == "DEC")  12 else 1
+    }
+    //
+
     class DBAsyncTask1(val context: Context, val scheduleEntity: ScheduleEntity, private val mode: Int) :
         AsyncTask<Void, Void, Boolean>() {
 
@@ -195,6 +253,9 @@ class CreatePlanActivity : AppCompatActivity() {
 
             when (mode) {
                 1 -> {
+                    if(db.scheduleDao().deleteIfExist(scheduleEntity.schedule_id) == 1){
+                        db.scheduleDao().deleteSchedule(scheduleEntity)
+                    }
                     db.scheduleDao().insertSchedule(scheduleEntity)
                     db.close()
                     return true

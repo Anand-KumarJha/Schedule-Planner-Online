@@ -18,9 +18,7 @@
             android:exported="false" />
         <activity
             android:name=".activity.CreatePlanActivity"
-            android:exported="false" />
-        <activity
-            android:name=".activity.RegisterOTP"
+            android:windowSoftInputMode="stateHidden"
             android:exported="false" />
         <activity
             android:name=".activity.ForgotPassword"

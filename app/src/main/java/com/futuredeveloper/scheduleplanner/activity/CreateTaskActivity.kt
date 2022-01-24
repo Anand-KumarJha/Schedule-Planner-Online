@@ -53,7 +53,7 @@ class CreateTaskActivity : AppCompatActivity() {
             description = descriptionEditText.text.toString()
 
             val date = intent.getStringExtra("date")
-            val taskId = date + " " + timeButton?.text.toString()
+            val taskId = date + " " + timeConversion(timeButton?.text.toString())
             println(taskId)
 
             val taskEntity = TaskEntity(
@@ -106,6 +106,28 @@ class CreateTaskActivity : AppCompatActivity() {
             TimePickerDialog(this,  /*style,*/onTimeSetListener, hour, minute, false)
         timePickerDialog.setTitle("Select Task Time")
         timePickerDialog.show()
+    }
+
+    fun timeConversion(s: kotlin.String): kotlin.String? {
+        var militaryTime = ""
+        val hourString = s.substring(0, 2)
+        val timeFormat = s.substring(6, 8)
+        val timeBody = s.substring(2, 6)
+        if (timeFormat == "AM") {
+            militaryTime = if (hourString == "12") {
+                "00$timeBody"
+            } else {
+                hourString + timeBody
+            }
+        } else if (timeFormat == "PM") {
+            militaryTime = if (hourString == "12") {
+                hourString + timeBody
+            } else {
+                val value = hourString.toInt() + 12
+                value.toString() + timeBody
+            }
+        }
+        return militaryTime
     }
 
     class DBAsyncTask1(val context: Context, val taskEntity: TaskEntity, private val mode: Int) :

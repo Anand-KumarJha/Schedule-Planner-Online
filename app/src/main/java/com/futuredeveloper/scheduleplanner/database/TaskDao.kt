@@ -13,15 +13,18 @@ interface TaskDao {
         @Delete
         fun deleteTask(taskEntity: TaskEntity)
 
-        @Query("SELECT * FROM task")
+        @Query("SELECT * FROM task ORDER BY task_id ASC")
         fun getAllTaskItems(): List<TaskEntity>
 
         @Query("SELECT * FROM task WHERE task_id = :taskId")
         fun getTaskById(taskId: String): TaskEntity
 
-        @Query("SELECT * FROM task WHERE task_id LIKE :taskDate || '%'")
+        @Query("DELETE FROM task WHERE task_id = :taskId")
+        fun deleteTaskById(taskId: String)
+
+        @Query("SELECT * FROM task WHERE task_id LIKE :taskDate || '%' ORDER BY task_id ASC")
         fun getTaskByDate(taskDate: String): List<TaskEntity>
 
-        @Query("DELETE FROM task")
-        fun clearTask()
+        @Query("DELETE FROM task WHERE task_id LIKE :taskDate || '%'")
+        fun clearTask(taskDate: String)
 }

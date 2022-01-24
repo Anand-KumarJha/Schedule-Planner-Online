@@ -6,6 +6,5 @@
             android:id="@+id/new_schedule"
             android:title="New Schedule"
             />
-
     </group>
 </menu>

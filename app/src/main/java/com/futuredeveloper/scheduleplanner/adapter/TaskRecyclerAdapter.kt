@@ -2,10 +2,13 @@ package com.futuredeveloper.scheduleplanner.adapter
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.media.Image
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
 import com.futuredeveloper.scheduleplanner.R
 import com.futuredeveloper.scheduleplanner.models.Task
@@ -47,4 +50,5 @@ class TaskRecyclerAdapter(context: Context, private val itemList: List<Task>) :
     override fun getItemCount(): Int {
         return itemList.size
     }
+
 }
