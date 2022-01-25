@@ -8,6 +8,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.AsyncTask
 import android.os.Bundle
+import android.view.ActionMode
 import android.view.MenuItem
 import android.view.View
 import android.widget.Button
@@ -85,6 +86,8 @@ class CreatePlanActivity : AppCompatActivity() {
                 putExtra("date",dateButton?.text.toString())
             }
             startActivity(intent)
+            overridePendingTransition(R.anim.pull_up_from_bottom,0)
+            finish()
         }
 
         saveSchedule.setOnClickListener {
@@ -110,9 +113,7 @@ class CreatePlanActivity : AppCompatActivity() {
                     "Schedule Added Successfully!",
                     Toast.LENGTH_SHORT
                 ).show()
-                val intent = Intent(this@CreatePlanActivity, MainActivity::class.java)
-                startActivity(intent)
-                finish()
+                onBackPressed()
             } else {
                 Toast.makeText(
                     this,
@@ -225,7 +226,6 @@ class CreatePlanActivity : AppCompatActivity() {
         year = temp.toString()
         date1.clear()
         date1.append(year).append(month).append(day)
-        println("date = $date1, year = $year, month = $month, day = $day")
         return date1.toString()
     }
 
@@ -280,4 +280,10 @@ class CreatePlanActivity : AppCompatActivity() {
         }
     }
 
+    override fun onBackPressed() {
+        val intent = Intent(this, MainActivity::class.java)
+        startActivity(intent)
+        overridePendingTransition(R.anim.pull_up_from_top,R.anim.push_out_to_bottom)
+        finish()
+    }
 }

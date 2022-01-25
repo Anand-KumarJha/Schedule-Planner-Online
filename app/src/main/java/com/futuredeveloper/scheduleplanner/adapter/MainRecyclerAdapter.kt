@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import android.widget.*
 import androidx.recyclerview.widget.RecyclerView
 import androidx.room.Room
+import com.futuredeveloper.scheduleplanner.R
 import com.futuredeveloper.scheduleplanner.database.ScheduleEntity
 
 
@@ -54,6 +55,8 @@ class MainRecyclerAdapter(
                 )
                 intent.putExtra("date", holder.scheduleDate.text.toString())
                 context.startActivity(intent)
+                (context as Activity).overridePendingTransition(R.anim.pull_up_from_bottom,0)
+                (context as Activity).finish()
             }
             holder.deleteButton.setOnClickListener{
                 val logout = androidx.appcompat.app.AlertDialog.Builder(it.context)

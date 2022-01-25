@@ -71,6 +71,8 @@ class HomeFragment : Fragment() {
             val intent = Intent(context, CreatePlanActivity::class.java)
             intent.putExtra("date","0")
             startActivity(intent)
+            activity?.overridePendingTransition(R.anim.pull_up_from_bottom,0)
+            activity?.finish()
         }
         return view
     }

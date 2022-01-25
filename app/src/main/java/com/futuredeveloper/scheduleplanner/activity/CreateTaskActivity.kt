@@ -13,6 +13,7 @@ import android.os.AsyncTask
 import android.view.View
 import android.widget.EditText
 import android.widget.Toast
+import androidx.core.content.ContextCompat
 import androidx.room.Room
 import com.futuredeveloper.scheduleplanner.database.TaskDatabase
 import com.futuredeveloper.scheduleplanner.database.TaskEntity
@@ -21,6 +22,10 @@ import com.google.android.material.navigation.NavigationView
 import java.lang.String
 import java.text.DateFormat
 import java.util.*
+import android.widget.TextView
+
+
+
 
 
 class CreateTaskActivity : AppCompatActivity() {
@@ -34,6 +39,7 @@ class CreateTaskActivity : AppCompatActivity() {
     lateinit var descriptionEditText: EditText
     var timetype = "AM"
     lateinit var saveTask: FloatingActionButton
+    var date: kotlin.String? = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -43,6 +49,7 @@ class CreateTaskActivity : AppCompatActivity() {
         titleEditText = findViewById(R.id.title)
         descriptionEditText = findViewById(R.id.description)
 
+        date = intent.getStringExtra("date")
 
         saveTask.setOnClickListener {
             val calendar = Calendar.getInstance()
@@ -52,9 +59,7 @@ class CreateTaskActivity : AppCompatActivity() {
             title = titleEditText.text.toString()
             description = descriptionEditText.text.toString()
 
-            val date = intent.getStringExtra("date")
             val taskId = date + " " + timeConversion(timeButton?.text.toString())
-            println(taskId)
 
             val taskEntity = TaskEntity(
                 taskId,
@@ -68,6 +73,7 @@ class CreateTaskActivity : AppCompatActivity() {
                 taskEntity,
                 2
             ).execute()
+
             val result = async.get()
             if (result) {
                 Toast.makeText(
@@ -75,16 +81,16 @@ class CreateTaskActivity : AppCompatActivity() {
                     "Task Added Successfully!",
                     Toast.LENGTH_SHORT
                 ).show()
-                val intent = Intent(this@CreateTaskActivity, CreatePlanActivity::class.java)
-                intent.putExtra("date",date.toString())
-                startActivity(intent)
-                finish()
-            } else {
-                Toast.makeText(
+                onBackPressed()
+            }else{
+                val toast = Toast.makeText(
                     this,
-                    "Some error occurred!",
+                    "Task already exists at same time!",
                     Toast.LENGTH_SHORT
-                ).show()
+                )
+
+                toast.view?.background?.setTintList(ContextCompat.getColorStateList(it.context,android.R.color.darker_gray))
+                toast.show()
             }
         }
 
@@ -108,7 +114,7 @@ class CreateTaskActivity : AppCompatActivity() {
         timePickerDialog.show()
     }
 
-    fun timeConversion(s: kotlin.String): kotlin.String? {
+    private fun timeConversion(s: kotlin.String): kotlin.String? {
         var militaryTime = ""
         val hourString = s.substring(0, 2)
         val timeFormat = s.substring(6, 8)
@@ -133,10 +139,6 @@ class CreateTaskActivity : AppCompatActivity() {
     class DBAsyncTask1(val context: Context, val taskEntity: TaskEntity, private val mode: Int) :
         AsyncTask<Void, Void, Boolean>() {
 
-        //Mode 1: Check DB that food is favourite or not
-        //Mode 2: Add to favourite
-        //Mode 3: Remove from favourites
-
         override fun doInBackground(vararg params: Void?): Boolean {
             val db = Room.databaseBuilder(context, TaskDatabase::class.java, "Task-Db").build()
 
@@ -147,9 +149,14 @@ class CreateTaskActivity : AppCompatActivity() {
                     return task != null
                 }
                 2 -> {
-                    db.taskDao().insertTask(taskEntity)
-                    db.close()
-                    return true
+                    try {
+                        db.taskDao().insertTask(taskEntity)
+                        db.close()
+                        return true
+                    }catch (e: Exception){
+                        return false
+                    }
+
                 }
                 3 -> {
                     db.taskDao().deleteTask(taskEntity)
@@ -161,4 +168,11 @@ class CreateTaskActivity : AppCompatActivity() {
         }
     }
 
+    override fun onBackPressed() {
+        val intent = Intent(this, CreatePlanActivity::class.java)
+        intent.putExtra("date",date.toString())
+        startActivity(intent)
+        overridePendingTransition(R.anim.pull_up_from_top,R.anim.push_out_to_bottom)
+        finish()
+    }
 }

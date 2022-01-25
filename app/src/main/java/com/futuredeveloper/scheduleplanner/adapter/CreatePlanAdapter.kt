@@ -17,8 +17,6 @@ class CreatePlanAdapter(context: Context, private val itemList: List<TaskEntity>
     RecyclerView.Adapter<CreatePlanAdapter.CreateTaskViewHolder>() {
 
     class CreateTaskViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-//        var itemName: TextView = view.findViewById(R.id.nameRecyclerRow)
-//        var itemPrice: TextView = view.findViewById(R.id.priceRecyclerRow)
         var count: TextView = view.findViewById(R.id.count)
         var time: TextView = view.findViewById(R.id.time)
         var title: TextView = view.findViewById(R.id.title)
