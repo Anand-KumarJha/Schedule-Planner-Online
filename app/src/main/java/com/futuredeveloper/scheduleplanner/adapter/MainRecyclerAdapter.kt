@@ -7,7 +7,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.*
 import androidx.recyclerview.widget.RecyclerView
-import androidx.room.Room
 import com.futuredeveloper.scheduleplanner.R
 import com.futuredeveloper.scheduleplanner.database.ScheduleEntity
 
@@ -59,33 +58,41 @@ class MainRecyclerAdapter(
                 (context as Activity).finish()
             }
             holder.deleteButton.setOnClickListener{
-                val logout = androidx.appcompat.app.AlertDialog.Builder(it.context)
-                logout.setTitle("Delete Schedule")
-                logout.setMessage("Do you want to delete selected schedule?")
-                logout.setPositiveButton("Yes") { text, listener ->
-                    val async = DBAsyncTask1(
-                        context,
-                        makeDate(holder.scheduleDate.text.toString())
-                    ).execute()
-                    val async2 = DBAsyncTask2(
-                        context,
-                        holder.scheduleDate.text.toString()
-                    ).execute()
-                    (it.getContext() as Activity?)?.recreate()
-                    Toast.makeText(it.context,"Schedule Deleted", Toast.LENGTH_SHORT).show()
+                val delete = androidx.appcompat.app.AlertDialog.Builder(it.context)
+                delete.setTitle("Delete Schedule")
+                delete.setMessage("Do you want to delete selected schedule?")
+                delete.setPositiveButton("Yes") { text, listener ->
+                    delete(holder.scheduleDate.text.toString())
                 }
-                logout.setNegativeButton("No") { text, listener ->
+                delete.setNegativeButton("No") { text, listener ->
 
                 }
-                logout.create()
-                logout.show()
+                delete.create()
+                delete.show()
 
             }
+
         }
 
-        override fun getItemCount(): Int {
-            return itemList.size
-        }
+    fun deleteIt(position: Int){
+        delete(itemList[position].scheduleDate)
+    }
+    fun delete(scheduleDate: String){
+        val async = DBAsyncTask1(
+            context,
+            makeDate(scheduleDate)
+        ).execute()
+        val async2 = DBAsyncTask2(
+            context,
+            scheduleDate
+        ).execute()
+        (context as Activity?)?.recreate()
+        Toast.makeText(context,"Schedule Deleted", Toast.LENGTH_SHORT).show()
+    }
+
+    override fun getItemCount(): Int {
+        return itemList.size
+    }
 
     //For date sorting
     private var date1 = StringBuilder()
@@ -140,7 +147,6 @@ class MainRecyclerAdapter(
         if (month == "NOV") return 11
         return if (month == "DEC")  12 else 1
     }
-
     class DBAsyncTask1(val context: Context, val id: String) :
         android.os.AsyncTask<Void, Void, Boolean>() {
 

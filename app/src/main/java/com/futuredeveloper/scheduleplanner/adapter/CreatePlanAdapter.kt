@@ -13,7 +13,7 @@ import com.futuredeveloper.scheduleplanner.R
 import com.futuredeveloper.scheduleplanner.database.TaskEntity
 
 
-class CreatePlanAdapter(context: Context, private val itemList: List<TaskEntity>) :
+class CreatePlanAdapter(val context: Context, private val itemList: List<TaskEntity>) :
     RecyclerView.Adapter<CreatePlanAdapter.CreateTaskViewHolder>() {
 
     class CreateTaskViewHolder(view: View) : RecyclerView.ViewHolder(view) {
@@ -47,13 +47,7 @@ class CreatePlanAdapter(context: Context, private val itemList: List<TaskEntity>
             logout.setTitle("Delete Task")
             logout.setMessage("Do you want to delete selected task?")
             logout.setPositiveButton("Yes") { text, listener ->
-                val async2 = MainRecyclerAdapter.DBAsyncTask2(
-                    it.context,
-                    itemList[position].task_id
-                ).execute()
-                (it.getContext() as android.app.Activity?)?.recreate()
 
-                Toast.makeText(it.context,"Task Deleted", Toast.LENGTH_SHORT).show()
             }
             logout.setNegativeButton("No") { text, listener ->
 
@@ -67,6 +61,14 @@ class CreatePlanAdapter(context: Context, private val itemList: List<TaskEntity>
         return itemList.size
     }
 
+    fun delete(position: Int){
+        val async2 = DBAsyncTask2(
+            context,
+            itemList[position].task_id
+        ).execute()
+        (context as android.app.Activity?)?.recreate()
+        Toast.makeText(context,"Task Deleted", Toast.LENGTH_SHORT).show()
+    }
 
     class DBAsyncTask2(val context: Context, val id: String) :
         android.os.AsyncTask<Void, Void, Boolean>() {

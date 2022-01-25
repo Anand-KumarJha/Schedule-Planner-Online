@@ -3,10 +3,13 @@ package com.futuredeveloper.scheduleplanner.fragment
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.media.MediaRouter
 import android.os.AsyncTask
 import android.os.Bundle
 import android.view.*
+import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.room.Room
@@ -19,6 +22,9 @@ import com.futuredeveloper.scheduleplanner.database.TaskDatabase
 import com.futuredeveloper.scheduleplanner.database.TaskEntity
 import com.futuredeveloper.scheduleplanner.models.Task
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import androidx.recyclerview.widget.RecyclerView.ViewHolder
+import com.futuredeveloper.scheduleplanner.callback.SwipeGesture
+
 
 // TODO: Rename parameter arguments, choose names that match
 // the com.example.scheduleplanner.fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -74,6 +80,26 @@ class HomeFragment : Fragment() {
             activity?.overridePendingTransition(R.anim.pull_up_from_bottom,0)
             activity?.finish()
         }
+
+        val swipeGesture = object :SwipeGesture(context as Activity){
+            override fun onSwiped(viewHolder: ViewHolder, direction: Int) {
+                val delete = androidx.appcompat.app.AlertDialog.Builder(context as Activity)
+                delete.setTitle("Delete Schedule")
+                delete.setMessage("Do you want to delete selected schedule?")
+                delete.setPositiveButton("Yes") { text, listener ->
+                    recyclerAdapter.deleteIt(viewHolder.adapterPosition)
+                }
+                delete.setNegativeButton("No") { text, listener ->
+
+                }
+                recyclerAdapter.notifyDataSetChanged()
+                delete.create()
+                delete.show()
+            }
+        }
+        val touchHelper = ItemTouchHelper(swipeGesture)
+        touchHelper.attachToRecyclerView(recyclerHome)
+
         return view
     }
 

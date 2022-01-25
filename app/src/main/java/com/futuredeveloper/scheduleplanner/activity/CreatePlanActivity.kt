@@ -15,11 +15,13 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.room.Room
 import com.futuredeveloper.scheduleplanner.R
 import com.futuredeveloper.scheduleplanner.adapter.CreatePlanAdapter
+import com.futuredeveloper.scheduleplanner.callback.SwipeGesture
 import com.futuredeveloper.scheduleplanner.database.ScheduleEntity
 import com.futuredeveloper.scheduleplanner.database.ScheduleRoomDatabase
 import com.futuredeveloper.scheduleplanner.database.TaskDatabase
@@ -101,7 +103,7 @@ class CreatePlanActivity : AppCompatActivity() {
             val date1 = makeDate(dateButton?.text.toString())
             val schedule = ScheduleEntity(date1,dateButton?.text.toString(),title.text.toString(),"",tasks)
 
-            val async = CreatePlanActivity.DBAsyncTask1(
+            val async = DBAsyncTask1(
                 this,
                  schedule,
                 1
@@ -122,6 +124,25 @@ class CreatePlanActivity : AppCompatActivity() {
                 ).show()
             }
         }
+
+        val swipeGesture = object : SwipeGesture(this){
+            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
+                val delete = androidx.appcompat.app.AlertDialog.Builder(this@CreatePlanActivity)
+                delete.setTitle("Delete Task")
+                delete.setMessage("Do you want to delete selected task?")
+                delete.setPositiveButton("Yes") { text, listener ->
+                    recyclerAdapter.delete(viewHolder.adapterPosition)
+                }
+                delete.setNegativeButton("No") { text, listener ->
+
+                }
+                recyclerAdapter.notifyDataSetChanged()
+                delete.create()
+                delete.show()
+            }
+        }
+        val touchHelper = ItemTouchHelper(swipeGesture)
+        touchHelper.attachToRecyclerView(recyclerHome)
     }
 
     private fun setUpToolbar(){
@@ -168,7 +189,6 @@ class CreatePlanActivity : AppCompatActivity() {
         val day = cal[Calendar.DAY_OF_MONTH]
         val style: Int = AlertDialog.THEME_HOLO_LIGHT
         datePickerDialog = DatePickerDialog(this, style, dateSetListener, year, month, day)
-        //datePickerDialog.getDatePicker().setMaxDate(System.currentTimeMillis());
     }
     private fun makeDateString(day: Int, month: Int, year: Int): String {
         return day.toString() + " " + getMonthFormat(month) + " " + year
