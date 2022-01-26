@@ -23,6 +23,7 @@ class CreatePlanAdapter(val context: Context, private val itemList: List<TaskEnt
         var description: TextView = view.findViewById(R.id.description)
         var editButton: ImageView = view.findViewById(R.id.edit2)
         var deleteButton: ImageView = view.findViewById(R.id.delete2)
+        var taskView: View = view.findViewById(R.id.taskView)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CreateTaskViewHolder {
@@ -39,6 +40,9 @@ class CreatePlanAdapter(val context: Context, private val itemList: List<TaskEnt
         holder.title.text = itemList[position].taskTitle
         holder.description.text = itemList[position].taskDescription
 
+        holder.editButton.setOnClickListener {
+            Toast.makeText(it.context,"Clicked Edit", Toast.LENGTH_SHORT).show()
+        }
         holder.editButton.setOnClickListener{
             Toast.makeText(it.context,"Clicked Edit", Toast.LENGTH_SHORT).show()
         }
@@ -47,7 +51,7 @@ class CreatePlanAdapter(val context: Context, private val itemList: List<TaskEnt
             logout.setTitle("Delete Task")
             logout.setMessage("Do you want to delete selected task?")
             logout.setPositiveButton("Yes") { text, listener ->
-
+                delete(position)
             }
             logout.setNegativeButton("No") { text, listener ->
 

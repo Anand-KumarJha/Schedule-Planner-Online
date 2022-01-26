@@ -28,7 +28,6 @@ class MainRecyclerAdapter(
             var editButton: ImageView = view.findViewById(com.futuredeveloper.scheduleplanner.R.id.edit1)
             var deleteButton: ImageView = view.findViewById(com.futuredeveloper.scheduleplanner.R.id.delete1)
             val liContent: RelativeLayout = view.findViewById(com.futuredeveloper.scheduleplanner.R.id.relative)
-
         }
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MainViewHolder {
@@ -47,15 +46,14 @@ class MainRecyclerAdapter(
             holder.recyclerHome.adapter = holder.recyclerAdapter
             holder.recyclerHome.layoutManager = holder.layoutManager
 
+            holder.recyclerHome.setOnClickListener {
+                editTask(holder)
+            }
+            holder.liContent.setOnClickListener {
+                editTask(holder)
+            }
             holder.editButton.setOnClickListener {
-                val intent = android.content.Intent(
-                    context,
-                    com.futuredeveloper.scheduleplanner.activity.CreatePlanActivity::class.java
-                )
-                intent.putExtra("date", holder.scheduleDate.text.toString())
-                context.startActivity(intent)
-                (context as Activity).overridePendingTransition(R.anim.pull_up_from_bottom,0)
-                (context as Activity).finish()
+                editTask(holder)
             }
             holder.deleteButton.setOnClickListener{
                 val delete = androidx.appcompat.app.AlertDialog.Builder(it.context)
@@ -74,6 +72,16 @@ class MainRecyclerAdapter(
 
         }
 
+    fun editTask(holder: MainViewHolder){
+        val intent = android.content.Intent(
+            context,
+            com.futuredeveloper.scheduleplanner.activity.CreatePlanActivity::class.java
+        )
+        intent.putExtra("date", holder.scheduleDate.text.toString())
+        context.startActivity(intent)
+        (context as Activity).overridePendingTransition(R.anim.pull_up_from_bottom,0)
+        (context as Activity).finish()
+    }
     fun deleteIt(position: Int){
         delete(itemList[position].scheduleDate)
     }

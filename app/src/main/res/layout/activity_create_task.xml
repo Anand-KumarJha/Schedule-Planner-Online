@@ -61,13 +61,6 @@
             android:text="12:00 AM"
             android:textSize="20dp" />
 
-        <ImageView
-            android:layout_width="30dp"
-            android:layout_height="30dp"
-            android:layout_alignParentEnd="true"
-            android:layout_marginTop="10dp"
-            android:layout_marginEnd="10dp"
-            android:src="@drawable/actionbar_menu" />
         <View
             android:id="@+id/horizontal_row"
             android:layout_width="match_parent"
@@ -80,8 +73,8 @@
             android:layout_width="200dp"
             android:layout_height="wrap_content"
             android:layout_below="@id/horizontal_row"
-            android:inputType="textCapWords"
             android:hint="Title"
+            android:inputType="textCapWords"
             android:textSize="20dp" />
 
         <EditText

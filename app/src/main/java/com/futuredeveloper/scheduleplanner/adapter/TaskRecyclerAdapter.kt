@@ -3,6 +3,7 @@ package com.futuredeveloper.scheduleplanner.adapter
 import android.annotation.SuppressLint
 import android.content.Context
 import android.media.Image
+import android.text.Layout
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -17,12 +18,11 @@ class TaskRecyclerAdapter(context: Context, private val itemList: List<Task>) :
     RecyclerView.Adapter<TaskRecyclerAdapter.TaskViewHolder>() {
 
     class TaskViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-//        var itemName: TextView = view.findViewById(R.id.nameRecyclerRow)
-//        var itemPrice: TextView = view.findViewById(R.id.priceRecyclerRow)
         var taskTime: TextView = view.findViewById(R.id.task_time)
         var taskCount: TextView = view.findViewById(R.id.rowCount)
         var taskName: TextView = view.findViewById(R.id.itemName)
         var taskDescription: TextView = view.findViewById(R.id.itemDescription)
+        var taskView:View = view.findViewById(R.id.taskView)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TaskViewHolder {
@@ -33,8 +33,6 @@ class TaskRecyclerAdapter(context: Context, private val itemList: List<Task>) :
 
     @SuppressLint("SetTextI18n")
     override fun onBindViewHolder(holder: TaskViewHolder, position: Int) {
-//        holder.itemName.text = itemList[position].foodName
-//        holder.itemPrice.text = "Rs. ${itemList[position].foodPrice}"
         holder.taskTime.text = itemList[position].taskTime
         holder.taskCount.text = (1+position).toString()+ ") "
         holder.taskName.text = itemList[position].taskTitle

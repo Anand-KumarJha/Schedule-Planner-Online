@@ -9,7 +9,7 @@ import androidx.core.content.ContextCompat
 import it.xabaras.android.recyclerview.swipedecorator.RecyclerViewSwipeDecorator
 
 
-abstract class SwipeGesture(context: Context): ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT) {
+abstract class SwipeGesture(context: Context): ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT) {
     private val deleteIcon = R.drawable.ic_menu_delete
 
     override fun onMove(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder, target: RecyclerView.ViewHolder): Boolean {
@@ -20,6 +20,7 @@ abstract class SwipeGesture(context: Context): ItemTouchHelper.SimpleCallback(0,
     ) {
         RecyclerViewSwipeDecorator.Builder(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive)
             .addSwipeLeftActionIcon(deleteIcon)
+            .addSwipeRightActionIcon(deleteIcon)
             .create()
             .decorate()
 

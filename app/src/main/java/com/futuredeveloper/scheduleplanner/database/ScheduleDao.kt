@@ -24,4 +24,7 @@ interface ScheduleDao {
 
     @Query("DELETE FROM schedule_table WHERE schedule_id = :id")
     fun deleteById(id: String)
+
+    @Query("SELECT * FROM schedule_table WHERE schedule_id = :id")
+    fun getScheduleById(id: String): ScheduleEntity
 }

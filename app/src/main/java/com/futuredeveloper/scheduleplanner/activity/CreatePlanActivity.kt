@@ -13,6 +13,7 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ImageView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.ItemTouchHelper
@@ -43,6 +44,7 @@ class CreatePlanActivity : AppCompatActivity() {
     private lateinit var createIcon: FloatingActionButton
     private lateinit var saveSchedule: FloatingActionButton
     private lateinit var title: EditText
+    private lateinit var notes: ImageView
     private lateinit var unchangedDate: String
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -55,13 +57,12 @@ class CreatePlanActivity : AppCompatActivity() {
         layoutManager = LinearLayoutManager(this)
         saveSchedule = findViewById(R.id.save_icon)
         title = findViewById(R.id.title)
+        notes = findViewById(R.id.notes)
 
         setUpToolbar()
-
         //Date picker
         initDatePicker()
         dateButton = findViewById(R.id.datePickerButton)
-
         val date = intent.getStringExtra("date")
         if(date.equals("0")){
             dateButton?.text = getTodaysDate()
@@ -69,8 +70,23 @@ class CreatePlanActivity : AppCompatActivity() {
             dateButton?.text = date
         }
         unchangedDate = dateButton?.text.toString()
-        //finished
 
+        if (intent.getStringExtra("title") != null){
+            title.setText(intent.getStringExtra("title"))
+        }else{
+            title.setText(DBAsyncTask2(this, makeDate(dateButton?.text.toString())).execute().get()?.scheduleTitle)
+        }
+
+        var notesDescription = ""
+        if(intent.getStringExtra("notesDescription") != null) {
+            notesDescription = intent.getStringExtra("notesDescription").toString()
+        }else{
+            val schedule = DBAsyncTask2(this, makeDate(dateButton?.text.toString())).execute().get()
+            if(schedule != null) {
+                notesDescription = schedule.scheduleDateNotes
+            }
+        }
+        //finished
         val menuList = RetrieveTaskItems(this,dateButton?.text.toString()).execute().get()
 
         //Recycler Adapter
@@ -83,10 +99,27 @@ class CreatePlanActivity : AppCompatActivity() {
         recyclerHome.layoutManager = layoutManager
         //finished
 
+
+        notes.setOnClickListener {
+            val intent = Intent(this@CreatePlanActivity, NotesActivity::class.java).apply {
+                putExtra("date",dateButton?.text.toString())
+                putExtra("notesDescription",notesDescription)
+                putExtra("title", title.text.toString())
+            }
+            println("notes - " + notesDescription)
+            startActivity(intent)
+            overridePendingTransition(R.anim.pull_up_from_bottom,0)
+            finish()
+        }
+
         createIcon.setOnClickListener {
             val intent = Intent(this@CreatePlanActivity, CreateTaskActivity::class.java).apply {
                 putExtra("date",dateButton?.text.toString())
+                putExtra("notesDescription",notesDescription)
+                putExtra("title", title.text.toString())
             }
+            println("notes - " + notesDescription)
+
             startActivity(intent)
             overridePendingTransition(R.anim.pull_up_from_bottom,0)
             finish()
@@ -101,7 +134,7 @@ class CreatePlanActivity : AppCompatActivity() {
             }
 
             val date1 = makeDate(dateButton?.text.toString())
-            val schedule = ScheduleEntity(date1,dateButton?.text.toString(),title.text.toString(),"",tasks)
+            val schedule = ScheduleEntity(date1,dateButton?.text.toString(),title.text.toString(),notesDescription,tasks)
 
             val async = DBAsyncTask1(
                 this,
@@ -160,7 +193,7 @@ class CreatePlanActivity : AppCompatActivity() {
     }
 
     //For DatePicker
-    private fun getTodaysDate(): String {
+    fun getTodaysDate(): String {
         val cal = Calendar.getInstance()
         val year = cal[Calendar.YEAR]
         var month = cal[Calendar.MONTH]
@@ -168,7 +201,7 @@ class CreatePlanActivity : AppCompatActivity() {
         val day = cal[Calendar.DAY_OF_MONTH]
         return makeDateString(day, month, year)
     }
-    private fun initDatePicker() {
+    fun initDatePicker() {
         val dateSetListener =
             OnDateSetListener { datePicker, year, month, day ->
                 var month = month
@@ -190,10 +223,10 @@ class CreatePlanActivity : AppCompatActivity() {
         val style: Int = AlertDialog.THEME_HOLO_LIGHT
         datePickerDialog = DatePickerDialog(this, style, dateSetListener, year, month, day)
     }
-    private fun makeDateString(day: Int, month: Int, year: Int): String {
+    fun makeDateString(day: Int, month: Int, year: Int): String {
         return day.toString() + " " + getMonthFormat(month) + " " + year
     }
-    private fun getMonthFormat(month: Int): String {
+    fun getMonthFormat(month: Int): String {
         if (month == 1) return "JAN"
         if (month == 2) return "FEB"
         if (month == 3) return "MAR"
@@ -212,8 +245,8 @@ class CreatePlanActivity : AppCompatActivity() {
     }
 
     //For date sorting
-    private var date1 = StringBuilder()
-    private fun makeDate(scheduleDate: String): String{
+    var date1 = StringBuilder()
+    fun makeDate(scheduleDate: String): String{
         var count = 0
 
         var day = ""
@@ -290,7 +323,16 @@ class CreatePlanActivity : AppCompatActivity() {
         }
     }
 
+    class DBAsyncTask2(val context: Context, val id: String) :
+        android.os.AsyncTask<Void, Void, ScheduleEntity>() {
 
+        override fun doInBackground(vararg params: Void?): ScheduleEntity {
+            val db = Room.databaseBuilder(context, ScheduleRoomDatabase::class.java, "Schedule-Db").build()
+            val ret = db.scheduleDao().getScheduleById(id)
+            db.close()
+            return ret
+        }
+    }
     class RetrieveTaskItems(val context: Context, val date: String) : AsyncTask<Void, Void, List<TaskEntity>>() {
         override fun doInBackground(vararg params: Void?): List<TaskEntity> {
             val db = Room.databaseBuilder(context, TaskDatabase::class.java, "Task-Db").build()

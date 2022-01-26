@@ -37,9 +37,11 @@ class CreateTaskActivity : AppCompatActivity() {
     lateinit var description: kotlin.String
     lateinit var titleEditText: EditText
     lateinit var descriptionEditText: EditText
+    lateinit var notesDescription: kotlin.String
     var timetype = "AM"
     lateinit var saveTask: FloatingActionButton
     var date: kotlin.String? = ""
+    var scheduleTitle = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -50,6 +52,8 @@ class CreateTaskActivity : AppCompatActivity() {
         descriptionEditText = findViewById(R.id.description)
 
         date = intent.getStringExtra("date")
+        notesDescription = intent.getStringExtra("notesDescription").toString()
+        scheduleTitle = intent.getStringExtra("title").toString()
 
         saveTask.setOnClickListener {
             val calendar = Calendar.getInstance()
@@ -171,6 +175,8 @@ class CreateTaskActivity : AppCompatActivity() {
     override fun onBackPressed() {
         val intent = Intent(this, CreatePlanActivity::class.java)
         intent.putExtra("date",date.toString())
+        intent.putExtra("notesDescription",notesDescription)
+        intent.putExtra("title", scheduleTitle)
         startActivity(intent)
         overridePendingTransition(R.anim.pull_up_from_top,R.anim.push_out_to_bottom)
         finish()

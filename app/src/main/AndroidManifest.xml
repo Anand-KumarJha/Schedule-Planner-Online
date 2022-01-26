@@ -14,12 +14,15 @@
         android:theme="@style/Theme.SchedulePlanner"
         tools:targetApi="n">
         <activity
+            android:name=".activity.NotesActivity"
+            android:exported="false" />
+        <activity
             android:name=".activity.CreateTaskActivity"
             android:exported="false" />
         <activity
             android:name=".activity.CreatePlanActivity"
-            android:windowSoftInputMode="stateHidden"
-            android:exported="false" />
+            android:exported="false"
+            android:windowSoftInputMode="stateHidden" />
         <activity
             android:name=".activity.ForgotPassword"
             android:exported="false" />
