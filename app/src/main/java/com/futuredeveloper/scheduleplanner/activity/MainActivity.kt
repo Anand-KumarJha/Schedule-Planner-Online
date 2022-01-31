@@ -1,6 +1,5 @@
 package com.futuredeveloper.scheduleplanner.activity
 
-import android.app.Activity
 import android.os.Bundle
 import android.view.MenuItem
 import android.widget.FrameLayout
@@ -9,12 +8,9 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
-import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProvider
 import com.futuredeveloper.scheduleplanner.R
 import com.futuredeveloper.scheduleplanner.fragment.*
 import com.google.android.material.navigation.NavigationView
-import java.lang.Exception
 
 class MainActivity : AppCompatActivity() {
 

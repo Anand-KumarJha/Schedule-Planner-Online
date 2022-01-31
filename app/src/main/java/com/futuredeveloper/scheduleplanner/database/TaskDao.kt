@@ -1,9 +1,6 @@
 package com.futuredeveloper.scheduleplanner.database
 
-import androidx.room.Dao
-import androidx.room.Delete
-import androidx.room.Insert
-import androidx.room.Query
+import androidx.room.*
 
 @Dao
 interface TaskDao {
@@ -12,6 +9,9 @@ interface TaskDao {
 
         @Delete
         fun deleteTask(taskEntity: TaskEntity)
+
+        @Update
+        fun updateTask(taskEntity: TaskEntity)
 
         @Query("SELECT * FROM task ORDER BY task_id ASC")
         fun getAllTaskItems(): List<TaskEntity>

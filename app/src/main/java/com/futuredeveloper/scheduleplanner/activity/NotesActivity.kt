@@ -1,23 +1,20 @@
 package com.futuredeveloper.scheduleplanner.activity
 
-import android.content.ClipDescription
-import android.content.Context
 import android.content.Intent
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import com.futuredeveloper.scheduleplanner.R
-import com.futuredeveloper.scheduleplanner.database.ScheduleEntity
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 
 class NotesActivity : AppCompatActivity() {
-    lateinit var date: String
-    lateinit var dateTextView: TextView
-    lateinit var description: EditText
-    lateinit var saveIcon: FloatingActionButton
-    var scheduleTitle = ""
+    private lateinit var date: String
+    private lateinit var dateTextView: TextView
+    private lateinit var description: EditText
+    private lateinit var saveIcon: FloatingActionButton
+    private var scheduleTitle = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

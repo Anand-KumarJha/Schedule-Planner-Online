@@ -6,22 +6,24 @@ import android.content.Intent
 import android.os.AsyncTask
 import android.os.Bundle
 import android.view.*
-import android.widget.ProgressBar
-import android.widget.TextView
+import android.widget.*
+import androidx.core.view.ViewCompat
+import androidx.core.widget.NestedScrollView
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.RecyclerView.ViewHolder
 import androidx.room.Room
-import com.futuredeveloper.scheduleplanner.activity.CreatePlanActivity
 import com.futuredeveloper.scheduleplanner.R
+import com.futuredeveloper.scheduleplanner.activity.CreatePlanActivity
+import com.futuredeveloper.scheduleplanner.adapter.CreatePlanAdapter
 import com.futuredeveloper.scheduleplanner.adapter.MainRecyclerAdapter
+import com.futuredeveloper.scheduleplanner.callback.SwipeGesture
+import com.futuredeveloper.scheduleplanner.classes.AlarmService
 import com.futuredeveloper.scheduleplanner.database.ScheduleEntity
 import com.futuredeveloper.scheduleplanner.database.ScheduleRoomDatabase
 import com.google.android.material.floatingactionbutton.FloatingActionButton
-import androidx.recyclerview.widget.RecyclerView.ViewHolder
-import com.futuredeveloper.scheduleplanner.callback.SwipeGesture
-import java.lang.Exception
 import java.util.*
 
 
@@ -43,10 +45,19 @@ class HomeFragment : Fragment() {
     private lateinit var recyclerHome: RecyclerView
     private lateinit var layoutManager: RecyclerView.LayoutManager
     private lateinit var recyclerAdapter: MainRecyclerAdapter
+    private lateinit var recyclerHome2: RecyclerView
+    private lateinit var layoutManager2: RecyclerView.LayoutManager
+    private lateinit var recyclerAdapter2: CreatePlanAdapter
     private lateinit var createIcon: FloatingActionButton
     private lateinit var tasksDone: TextView
     private lateinit var tasksDonePercentage: TextView
     private lateinit var progressBar: ProgressBar
+    private lateinit var editTodaySchedule: RelativeLayout
+    private lateinit var deleteTodaySchedule: ImageView
+    private lateinit var verticalRow: View
+    private lateinit var noSchedule: RelativeLayout
+    private lateinit var nestedScrollView:NestedScrollView
+    private var timeInMillis: Long = 0L
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -66,45 +77,144 @@ class HomeFragment : Fragment() {
         recyclerHome = view.findViewById(R.id.recyclerHome)
         layoutManager = LinearLayoutManager(activity)
         createIcon = view.findViewById(R.id.create_icon)
+        recyclerHome2 = view.findViewById(R.id.recyclerHome2)
+        layoutManager2 = LinearLayoutManager(activity)
         tasksDone = view.findViewById(R.id.tasksDone)
         tasksDonePercentage = view.findViewById(R.id.tasksDonePercentage)
         progressBar = view.findViewById(R.id.progress_bar)
+        editTodaySchedule = view.findViewById(R.id.editSchedule)
+        deleteTodaySchedule = view.findViewById(R.id.delete)
+        verticalRow = view.findViewById(R.id.vertical_row)
+        noSchedule = view.findViewById(R.id.noSchedule)
+        nestedScrollView = view.findViewById(R.id.nestedScrollView)
+
+        nestedScrollView.isFocusableInTouchMode = true
+        nestedScrollView.fullScroll(View.FOCUS_UP)
+        nestedScrollView.smoothScrollTo(0,0)
 
         val scheduleList = RetrieveScheduleItems(activity as Context).execute().get()
-
+        val scheduleList2 = ArrayList<ScheduleEntity>()
+        for(item in scheduleList){
+            if(item.scheduleDate != getTodaysDate()){
+                scheduleList2.add(item)
+            }
+        }
+        if(scheduleList2.size > 0){
+            noSchedule.visibility = View.GONE
+        }
+        recyclerAdapter =
+            MainRecyclerAdapter(activity as Context, scheduleList2)
+        recyclerHome.adapter = recyclerAdapter
+        recyclerHome.layoutManager = layoutManager
+        ViewCompat.setNestedScrollingEnabled(recyclerHome, false)
         try {
             val schedule = CreatePlanActivity.DBAsyncTask2(context as Activity, makeDate(getTodaysDate())).execute().get()
-            if(schedule.tasks.size != 0) {
-                val done = schedule.tasks.size - 1
+            recyclerAdapter2 =
+                CreatePlanAdapter(activity as Context, schedule.tasks)
+            recyclerHome2.adapter = recyclerAdapter2
+            recyclerHome2.layoutManager = layoutManager2
 
-                tasksDone.setText(("" + done + "/" + schedule.tasks.size + " Tasks Done"))
+            editTodaySchedule.setOnClickListener {
+                val intent = Intent(context, CreatePlanActivity::class.java)
+                intent.putExtra("date",schedule.scheduleDate)
+                startActivity(intent)
+                activity?.overridePendingTransition(R.anim.pull_up_from_bottom,0)
+                activity?.finish()
+            }
+            if(schedule.tasks.isNotEmpty()) {
+                var done = 0
+                for(item in schedule.tasks){
+                    if(item.taskDone)done++
+                }
+                tasksDone.text = ("" + done + "/" + schedule.tasks.size + " Tasks Done")
 
                 val percentage = (done.toFloat() / (schedule.tasks.size).toFloat()) * 100
-                tasksDonePercentage.setText(percentage.toInt().toString() + "%")
+                tasksDonePercentage.text = percentage.toInt().toString() + "%"
                 progressBar.progress = percentage.toInt()
             }else{
-                tasksDone.setText(("All Tasks Done"))
+                tasksDone.text = ("No Tasks Scheduled")
 
                 val percentage = 100
-                tasksDonePercentage.setText(percentage.toString() + "%")
+                tasksDonePercentage.text = percentage.toString() + "%"
                 progressBar.progress = percentage
             }
         }catch (e: Exception){
-            tasksDone.setText(("All Tasks Done"))
+            editTodaySchedule.visibility = View.GONE
+            deleteTodaySchedule.visibility = View.GONE
+            verticalRow.visibility = View.GONE
+
+            tasksDone.text = ("No Tasks Scheduled")
 
             val percentage = 100
-            tasksDonePercentage.setText(percentage.toString() + "%")
+            tasksDonePercentage.text = percentage.toString() + "%"
             progressBar.progress = percentage
         }
+        ViewCompat.setNestedScrollingEnabled(recyclerHome2, false)
 
+        deleteTodaySchedule.setOnClickListener {
+            val delete = androidx.appcompat.app.AlertDialog.Builder(it.context)
+            delete.setTitle("Delete Schedule")
+            delete.setMessage("Do you want to delete selected schedule?")
+            delete.setPositiveButton("Yes") { text, listener ->
+                val schedule = DBAsyncTask1(
+                    context as Activity,
+                    makeDate(getTodaysDate())
+                ).execute().get()
 
-        recyclerAdapter =
-            MainRecyclerAdapter(activity as Context, scheduleList)
+                for(i in schedule.tasks){
+                    var count1 = 0
+                    var start = 0
 
-        recyclerHome.adapter = recyclerAdapter
-        recyclerHome.layoutManager = layoutManager
+                    val sb = java.lang.StringBuilder()
+                    for(j in (i.task_id)){
+                        if(j == ','){
+                            count1++
+                        }
+                        if(count1 >= 2){
+                            break
+                        }
+                        if(count1 == 1 && start > 0){
+                            sb.append(j)
+                        }
+                        if(count1 == 1){
+                            start++
+                        }
+                    }
 
+                    timeInMillis = (sb.toString()).toLong()
 
+                    val sb1 = StringBuilder()
+                    var count = 0
+                    for(j in (i.task_id)){
+                        if(count >= 2){
+                            sb1.append(j)
+                        }
+                        if(j == ',')count++
+                    }
+                    val alarmNo = Integer.parseInt(sb1.toString())
+
+                    println("Canceled alarm -------------------- $alarmNo")
+                    val alarmService= AlarmService(context as Activity,alarmNo,"")
+                    cancelAlarm{alarmService.cancelAlarm(timeInMillis)}
+                }
+
+                MainRecyclerAdapter.DBAsyncTask1(
+                    context as Activity,
+                    makeDate(getTodaysDate())
+                ).execute()
+                MainRecyclerAdapter.DBAsyncTask2(
+                    context as Activity,
+                    getTodaysDate()
+                ).execute()
+                (context as Activity?)?.recreate()
+                Toast.makeText(context,"Schedule Deleted", Toast.LENGTH_SHORT).show()
+            }
+            delete.setNegativeButton("No") { text, listener ->
+
+            }
+            delete.create()
+            delete.show()
+        }
         createIcon.setOnClickListener {
             val intent = Intent(context, CreatePlanActivity::class.java)
             intent.putExtra("date","0")
@@ -122,9 +232,9 @@ class HomeFragment : Fragment() {
                     recyclerAdapter.deleteIt(viewHolder.adapterPosition)
                 }
                 delete.setNegativeButton("No") { text, listener ->
-
+                    recyclerAdapter.notifyDataSetChanged()
                 }
-                recyclerAdapter.notifyDataSetChanged()
+
                 delete.create()
                 delete.show()
             }
@@ -155,11 +265,11 @@ class HomeFragment : Fragment() {
             }
     }
 
-    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-        inflater.inflate(R.menu.menu_dashboard,menu)
+    private fun cancelAlarm(callback: (Long) -> Unit){
+        callback(timeInMillis)
     }
 
-    fun getTodaysDate(): String {
+    private fun getTodaysDate(): String {
         val cal = Calendar.getInstance()
         val year = cal[Calendar.YEAR]
         var month = cal[Calendar.MONTH]
@@ -167,10 +277,10 @@ class HomeFragment : Fragment() {
         val day = cal[Calendar.DAY_OF_MONTH]
         return makeDateString(day, month, year)
     }
-    fun makeDateString(day: Int, month: Int, year: Int): String {
+    private fun makeDateString(day: Int, month: Int, year: Int): String {
         return day.toString() + " " + getMonthFormat(month) + " " + year
     }
-    fun getMonthFormat(month: Int): String {
+    private fun getMonthFormat(month: Int): String {
         if (month == 1) return "JAN"
         if (month == 2) return "FEB"
         if (month == 3) return "MAR"
@@ -185,8 +295,8 @@ class HomeFragment : Fragment() {
         return if (month == 12) "DEC" else "JAN"
     }
 
-    var date1 = StringBuilder()
-    fun makeDate(scheduleDate: String): String{
+    private var date1 = StringBuilder()
+    private fun makeDate(scheduleDate: String): String{
         var count = 0
 
         var day = ""
@@ -202,14 +312,14 @@ class HomeFragment : Fragment() {
             }else{
                 if(count == 0){
                     if(temp.toString().length < 2){
-                        day = "0${temp.toString()}"
+                        day = "0$temp"
                     }else{
                         day = temp.toString()
                     }
                 }else if(count == 1){
                     month = getMonthFormat1(temp.toString()).toString()
-                    if(month.toString().length < 2){
-                        month = "0${month.toString()}"
+                    if(month.length < 2){
+                        month = "0${month}"
                     }
                 }
                 temp.clear()
@@ -222,7 +332,7 @@ class HomeFragment : Fragment() {
         return date1.toString()
     }
 
-    fun getMonthFormat1(month: String): Int {
+    private fun getMonthFormat1(month: String): Int {
         if (month == "JAN") return 1
         if (month == "FEB") return 2
         if (month == "MAR") return 3
@@ -238,13 +348,24 @@ class HomeFragment : Fragment() {
     }
     //
     class RetrieveScheduleItems(val context: Context) : AsyncTask<Void, Void, List<ScheduleEntity>>() {
-        override fun doInBackground(vararg params: Void?): List<ScheduleEntity>? {
+        override fun doInBackground(vararg params: Void?): List<ScheduleEntity> {
             val db = Room.databaseBuilder(context, ScheduleRoomDatabase::class.java, "Schedule-Db").build()
             val ret = db.scheduleDao().getAllSchedule()
             db.close()
             return ret
         }
 
+    }
+    class DBAsyncTask1(val context: Context, val id: String) :
+        android.os.AsyncTask<Void, Void, ScheduleEntity>() {
+
+        override fun doInBackground(vararg params: Void?): ScheduleEntity {
+            val db = Room.databaseBuilder(context, ScheduleRoomDatabase::class.java, "Schedule-Db").build()
+
+            val ret = db.scheduleDao().getScheduleById(id)
+            db.close()
+            return ret
+        }
     }
 
 }

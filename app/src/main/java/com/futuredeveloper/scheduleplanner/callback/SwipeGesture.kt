@@ -1,11 +1,10 @@
 package com.futuredeveloper.scheduleplanner.callback
 
+import android.R
 import android.content.Context
 import android.graphics.Canvas
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
-import android.R
-import androidx.core.content.ContextCompat
 import it.xabaras.android.recyclerview.swipedecorator.RecyclerViewSwipeDecorator
 
 
@@ -24,6 +23,6 @@ abstract class SwipeGesture(context: Context): ItemTouchHelper.SimpleCallback(0,
             .create()
             .decorate()
 
-        super.onChildDraw(c, recyclerView, viewHolder, dX/4, dY, actionState, isCurrentlyActive)
+        super.onChildDraw(c, recyclerView, viewHolder, dX/5, dY, actionState, isCurrentlyActive)
     }
 }

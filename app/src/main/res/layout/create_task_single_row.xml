@@ -4,12 +4,16 @@
     android:layout_height="wrap_content"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     app:cardCornerRadius="10dp"
-    android:layout_margin="10dp">
+    android:layout_marginTop="5dp"
+    android:layout_marginBottom="5dp"
+    android:layout_marginStart="10dp"
+    android:layout_marginEnd="10dp">
 
     <RelativeLayout
         android:id="@+id/taskView"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:background="@drawable/gradient1">
 
         <TextView
             android:id="@+id/count"
@@ -37,7 +41,6 @@
             android:layout_marginStart="10dp"
             android:layout_marginTop="5dp"
             android:layout_toEndOf="@id/count"
-            android:background="@color/white"
             android:text="3:00 PM"
             android:textSize="20dp" />
 
@@ -47,8 +50,31 @@
             android:layout_height="30dp"
             android:layout_alignParentEnd="true"
             android:layout_marginTop="2dp"
-            android:layout_marginEnd="50dp"
-            android:src="@drawable/actionbar_edit_task" />
+            android:layout_marginEnd="45dp"
+            android:src="@drawable/actionbar_edit_task"
+            android:visibility="gone"
+            />
+
+        <ImageView
+            android:id="@+id/done"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_alignParentEnd="true"
+            android:layout_marginTop="2dp"
+            android:layout_marginEnd="80dp"
+            android:src="@drawable/actionbar_not_done_task"
+            android:visibility="gone"
+            />
+
+        <ImageView
+            android:id="@+id/today_done"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_alignParentEnd="true"
+            android:layout_marginTop="2dp"
+            android:layout_marginEnd="10dp"
+            android:src="@drawable/actionbar_not_done_task"
+            android:visibility="visible" />
 
         <ImageView
             android:id="@+id/delete2"
@@ -57,7 +83,9 @@
             android:layout_alignParentEnd="true"
             android:layout_marginTop="2dp"
             android:layout_marginEnd="10dp"
-            android:src="@drawable/actionbar_delete_task" />
+            android:src="@drawable/actionbar_delete_task"
+            android:visibility="gone"
+            />
 
         <View
             android:id="@+id/horizontal_row"
@@ -83,6 +111,7 @@
             android:layout_below="@id/title"
             android:layout_marginStart="5dp"
             android:layout_marginTop="10dp"
+            android:layout_marginBottom="10dp"
             android:inputType="textMultiLine|textNoSuggestions"
             android:text="@string/dummy"
             android:textColor="#595858"

@@ -16,7 +16,7 @@ class SplashScreen : AppCompatActivity() {
         Handler().postDelayed({
             val startAct = Intent(this@SplashScreen, Login::class.java)
             startActivity(startAct)
-        }, 2000)
+        }, 1000)
     }
 
     override fun onPause() {

@@ -1,21 +1,21 @@
 package com.futuredeveloper.scheduleplanner.activity
 
-import android.app.Activity
 import android.app.AlertDialog
 import android.app.DatePickerDialog
 import android.app.DatePickerDialog.OnDateSetListener
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
 import android.os.AsyncTask
+import android.os.Build
 import android.os.Bundle
-import android.view.ActionMode
 import android.view.MenuItem
 import android.view.View
-import android.widget.Button
-import android.widget.EditText
-import android.widget.ImageView
-import android.widget.Toast
+import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.widget.NestedScrollView
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -27,30 +27,32 @@ import com.futuredeveloper.scheduleplanner.database.ScheduleEntity
 import com.futuredeveloper.scheduleplanner.database.ScheduleRoomDatabase
 import com.futuredeveloper.scheduleplanner.database.TaskDatabase
 import com.futuredeveloper.scheduleplanner.database.TaskEntity
-import com.futuredeveloper.scheduleplanner.fragment.HomeFragment
-import com.futuredeveloper.scheduleplanner.models.Task
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import java.util.*
-import kotlin.collections.ArrayList
 
 
 class CreatePlanActivity : AppCompatActivity() {
-    private lateinit var toolbar: androidx.appcompat.widget.Toolbar
-    private var datePickerDialog: DatePickerDialog? = null
-    private var dateButton: Button? = null
     private lateinit var recyclerHome: RecyclerView
     private lateinit var layoutManager: RecyclerView.LayoutManager
     private lateinit var recyclerAdapter: CreatePlanAdapter
     private lateinit var createIcon: FloatingActionButton
     private lateinit var saveSchedule: FloatingActionButton
-    private lateinit var title: EditText
     private lateinit var notes: ImageView
     private lateinit var unchangedDate: String
+    private lateinit var noTask: RelativeLayout
+    private lateinit var nestedScrollView:NestedScrollView
+    private lateinit var menuList: List<TaskEntity>
+    private lateinit var toolbar: androidx.appcompat.widget.Toolbar
+    private var datePickerDialog: DatePickerDialog? = null
+    var dateButton: Button? = null
+    lateinit var title: EditText
+    var notesDescription = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_create_plan)
 
+        nestedScrollView = findViewById(R.id.nestedScrollView1)
         toolbar = findViewById(R.id.toolbar1)
         createIcon = findViewById(R.id.create_icon)
         recyclerHome = findViewById(R.id.recyclerHome)
@@ -58,13 +60,16 @@ class CreatePlanActivity : AppCompatActivity() {
         saveSchedule = findViewById(R.id.save_icon)
         title = findViewById(R.id.title)
         notes = findViewById(R.id.notes)
+        noTask = findViewById(R.id.noTask)
 
+        createNotificationChannel()
         setUpToolbar()
+
         //Date picker
         initDatePicker()
         dateButton = findViewById(R.id.datePickerButton)
         val date = intent.getStringExtra("date")
-        if(date.equals("0")){
+        if(date.equals("0") || date.equals(null)){
             dateButton?.text = getTodaysDate()
         }else{
             dateButton?.text = date
@@ -77,7 +82,6 @@ class CreatePlanActivity : AppCompatActivity() {
             title.setText(DBAsyncTask2(this, makeDate(dateButton?.text.toString())).execute().get()?.scheduleTitle)
         }
 
-        var notesDescription = ""
         if(intent.getStringExtra("notesDescription") != null) {
             notesDescription = intent.getStringExtra("notesDescription").toString()
         }else{
@@ -87,8 +91,11 @@ class CreatePlanActivity : AppCompatActivity() {
             }
         }
         //finished
-        val menuList = RetrieveTaskItems(this,dateButton?.text.toString()).execute().get()
+        menuList = RetrieveTaskItems(this,dateButton?.text.toString()).execute().get()
 
+        if(menuList.isNotEmpty()){
+            noTask.visibility = View.GONE
+        }
         //Recycler Adapter
         recyclerHome = findViewById(R.id.recyclerHome)
         layoutManager = LinearLayoutManager(this)
@@ -98,7 +105,7 @@ class CreatePlanActivity : AppCompatActivity() {
         recyclerHome.adapter = recyclerAdapter
         recyclerHome.layoutManager = layoutManager
         //finished
-
+        ViewCompat.setNestedScrollingEnabled(recyclerHome, false)
 
         notes.setOnClickListener {
             val intent = Intent(this@CreatePlanActivity, NotesActivity::class.java).apply {
@@ -106,7 +113,7 @@ class CreatePlanActivity : AppCompatActivity() {
                 putExtra("notesDescription",notesDescription)
                 putExtra("title", title.text.toString())
             }
-            println("notes - " + notesDescription)
+            println("notes - $notesDescription")
             startActivity(intent)
             overridePendingTransition(R.anim.pull_up_from_bottom,0)
             finish()
@@ -118,7 +125,6 @@ class CreatePlanActivity : AppCompatActivity() {
                 putExtra("notesDescription",notesDescription)
                 putExtra("title", title.text.toString())
             }
-            println("notes - " + notesDescription)
 
             startActivity(intent)
             overridePendingTransition(R.anim.pull_up_from_bottom,0)
@@ -126,36 +132,7 @@ class CreatePlanActivity : AppCompatActivity() {
         }
 
         saveSchedule.setOnClickListener {
-            val tasks = ArrayList<Task>()
-
-            for(taskEntity: TaskEntity in menuList){
-                val task = Task(taskEntity.task_id, taskEntity.taskTime, taskEntity.taskTitle, taskEntity.taskDescription)
-                tasks.add(task)
-            }
-
-            val date1 = makeDate(dateButton?.text.toString())
-            val schedule = ScheduleEntity(date1,dateButton?.text.toString(),title.text.toString(),notesDescription,tasks)
-
-            val async = DBAsyncTask1(
-                this,
-                 schedule,
-                1
-            ).execute()
-            val result = async.get()
-            if (result) {
-                Toast.makeText(
-                    this,
-                    "Schedule Added Successfully!",
-                    Toast.LENGTH_SHORT
-                ).show()
-                onBackPressed()
-            } else {
-                Toast.makeText(
-                    this,
-                    "Some error occurred!",
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
+            saveSchedule()
         }
 
         val swipeGesture = object : SwipeGesture(this){
@@ -167,15 +144,60 @@ class CreatePlanActivity : AppCompatActivity() {
                     recyclerAdapter.delete(viewHolder.adapterPosition)
                 }
                 delete.setNegativeButton("No") { text, listener ->
-
+                    recyclerAdapter.notifyDataSetChanged()
                 }
-                recyclerAdapter.notifyDataSetChanged()
                 delete.create()
                 delete.show()
             }
         }
         val touchHelper = ItemTouchHelper(swipeGesture)
         touchHelper.attachToRecyclerView(recyclerHome)
+    }
+
+    private fun saveSchedule(){
+        val tasks = ArrayList<TaskEntity>()
+
+        for(taskEntity: TaskEntity in menuList){
+            val task = TaskEntity(taskEntity.task_id, taskEntity.taskTime, taskEntity.taskTitle, taskEntity.taskDescription,taskEntity.taskDone)
+            tasks.add(task)
+        }
+
+        val date1 = makeDate(dateButton?.text.toString())
+        val schedule = ScheduleEntity(date1,dateButton?.text.toString(),title.text.toString(),notesDescription,tasks)
+
+        val async = DBAsyncTask1(
+            this,
+            schedule,
+            1
+        ).execute()
+        val result = async.get()
+        if (result) {
+            Toast.makeText(
+                this,
+                "Schedule Updated!",
+                Toast.LENGTH_SHORT
+            ).show()
+        } else {
+            Toast.makeText(
+                this,
+                "Some error occurred!",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+    }
+
+    private fun createNotificationChannel() {
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
+            val name: CharSequence = "taskNotification"
+            val description = "Channel for alarm manager"
+            val importance = NotificationManager.IMPORTANCE_HIGH
+            val channel = NotificationChannel("futuredeveloper.SchedulePlanner",name,importance)
+            channel.description = description
+            val notificationManager = getSystemService(
+                NotificationManager::class.java
+            )
+            notificationManager.createNotificationChannel(channel)
+        }
     }
 
     private fun setUpToolbar(){
@@ -193,7 +215,7 @@ class CreatePlanActivity : AppCompatActivity() {
     }
 
     //For DatePicker
-    fun getTodaysDate(): String {
+    private fun getTodaysDate(): String {
         val cal = Calendar.getInstance()
         val year = cal[Calendar.YEAR]
         var month = cal[Calendar.MONTH]
@@ -201,11 +223,11 @@ class CreatePlanActivity : AppCompatActivity() {
         val day = cal[Calendar.DAY_OF_MONTH]
         return makeDateString(day, month, year)
     }
-    fun initDatePicker() {
+    private fun initDatePicker() {
         val dateSetListener =
             OnDateSetListener { datePicker, year, month, day ->
                 var month = month
-                month = month + 1
+                month += 1
                 val date: String = makeDateString(day, month, year)
                 dateButton?.text = date
 
@@ -220,13 +242,14 @@ class CreatePlanActivity : AppCompatActivity() {
         val year = cal[Calendar.YEAR]
         val month = cal[Calendar.MONTH]
         val day = cal[Calendar.DAY_OF_MONTH]
-        val style: Int = AlertDialog.THEME_HOLO_LIGHT
+
+        val style: Int = AlertDialog.THEME_DEVICE_DEFAULT_LIGHT
         datePickerDialog = DatePickerDialog(this, style, dateSetListener, year, month, day)
     }
-    fun makeDateString(day: Int, month: Int, year: Int): String {
+    private fun makeDateString(day: Int, month: Int, year: Int): String {
         return day.toString() + " " + getMonthFormat(month) + " " + year
     }
-    fun getMonthFormat(month: Int): String {
+    private fun getMonthFormat(month: Int): String {
         if (month == 1) return "JAN"
         if (month == 2) return "FEB"
         if (month == 3) return "MAR"
@@ -245,8 +268,8 @@ class CreatePlanActivity : AppCompatActivity() {
     }
 
     //For date sorting
-    var date1 = StringBuilder()
-    fun makeDate(scheduleDate: String): String{
+    private var date1 = StringBuilder()
+    private fun makeDate(scheduleDate: String): String{
         var count = 0
 
         var day = ""
@@ -262,14 +285,14 @@ class CreatePlanActivity : AppCompatActivity() {
             }else{
                 if(count == 0){
                     if(temp.toString().length < 2){
-                        day = "0${temp.toString()}"
+                        day = "0${temp}"
                     }else{
                         day = temp.toString()
                     }
                 }else if(count == 1){
                     month = getMonthFormat1(temp.toString()).toString()
-                    if(month.toString().length < 2){
-                        month = "0${month.toString()}"
+                    if(month.length < 2){
+                        month = "0${month}"
                     }
                 }
                 temp.clear()
@@ -282,7 +305,7 @@ class CreatePlanActivity : AppCompatActivity() {
         return date1.toString()
     }
 
-    fun getMonthFormat1(month: String): Int {
+    private fun getMonthFormat1(month: String): Int {
         if (month == "JAN") return 1
         if (month == "FEB") return 2
         if (month == "MAR") return 3
@@ -298,7 +321,7 @@ class CreatePlanActivity : AppCompatActivity() {
     }
     //
 
-    class DBAsyncTask1(val context: Context, val scheduleEntity: ScheduleEntity, private val mode: Int) :
+    class DBAsyncTask1(val context: Context, private val scheduleEntity: ScheduleEntity, private val mode: Int) :
         AsyncTask<Void, Void, Boolean>() {
 
         override fun doInBackground(vararg params: Void?): Boolean {
@@ -333,7 +356,8 @@ class CreatePlanActivity : AppCompatActivity() {
             return ret
         }
     }
-    class RetrieveTaskItems(val context: Context, val date: String) : AsyncTask<Void, Void, List<TaskEntity>>() {
+
+    class RetrieveTaskItems(val context: Context, private val date: String) : AsyncTask<Void, Void, List<TaskEntity>>() {
         override fun doInBackground(vararg params: Void?): List<TaskEntity> {
             val db = Room.databaseBuilder(context, TaskDatabase::class.java, "Task-Db").build()
             val ret = db.taskDao().getTaskByDate(date)
@@ -343,6 +367,7 @@ class CreatePlanActivity : AppCompatActivity() {
     }
 
     override fun onBackPressed() {
+        saveSchedule()
         val intent = Intent(this, MainActivity::class.java)
         startActivity(intent)
         overridePendingTransition(R.anim.pull_up_from_top,R.anim.push_out_to_bottom)

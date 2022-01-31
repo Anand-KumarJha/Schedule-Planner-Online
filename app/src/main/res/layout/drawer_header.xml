@@ -5,23 +5,6 @@
     android:orientation="vertical"
     android:background="@color/black">
 
-
-<!--    <ImageView-->
-<!--        android:id="@+id/logo_menu"-->
-<!--        android:layout_width="220dp"-->
-<!--        android:layout_height="200dp"-->
-<!--        android:src="@drawable/robo"-->
-<!--        android:layout_centerHorizontal="true"/>-->
-
-<!--    <TextView-->
-<!--        android:layout_width="wrap_content"-->
-<!--        android:layout_height="wrap_content"-->
-<!--        android:text="@string/schedule_planner"-->
-<!--        android:textColor="@color/white"-->
-<!--        android:layout_centerHorizontal="true"-->
-<!--        android:layout_below="@+id/logo_menu"-->
-<!--        android:textSize="25sp"/>-->
-
     <ImageView
         android:id="@+id/logo_menu"
         android:layout_width="180dp"
