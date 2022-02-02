@@ -6,6 +6,22 @@
     android:background="#0B0B0B">
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/repeat_icon"
+        android:layout_width="55dp"
+        android:layout_height="55dp"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentBottom="true"
+        android:layout_gravity="center"
+        android:layout_marginEnd="20dp"
+        android:layout_marginBottom="70dp"
+        android:backgroundTint="#B5FFFFFF"
+        android:clickable="true"
+        android:focusable="true"
+        android:src="@drawable/actionbar_repeat_task"
+        app:maxImageSize="67dp"
+        android:contentDescription="Add Schedule" />
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/create_icon"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -25,8 +41,8 @@
         android:id="@+id/nestedScrollView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:scrollbarThumbVertical="@color/teal_200"
-        android:scrollbarSize="1dp">
+        android:scrollbarSize="1dp"
+        android:scrollbarThumbVertical="@color/teal_200">
 
         <RelativeLayout
             android:id="@+id/progress"
@@ -42,8 +58,8 @@
                     android:id="@+id/today_set"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/main_shape"
                     android:layout_margin="2dp"
+                    android:background="@drawable/main_shape"
                     android:padding="0.5dp">
 
                     <RelativeLayout
@@ -122,13 +138,14 @@
                                 android:textColor="@color/white"
                                 android:textSize="15dp" />
                         </RelativeLayout>
+
                         <View
                             android:id="@+id/vertical_row"
                             android:layout_width="1dp"
                             android:layout_height="15dp"
-                            android:layout_marginTop="11dp"
-                            android:layout_alignEnd="@+id/editSchedule"
                             android:layout_below="@id/progress_bar"
+                            android:layout_alignEnd="@+id/editSchedule"
+                            android:layout_marginTop="11dp"
                             android:background="#FFFFFF" />
 
                         <ImageView
@@ -159,8 +176,48 @@
                     android:layout_marginStart="10dp"
                     android:layout_marginTop="10dp"
                     android:layout_marginEnd="10dp"
+                    android:layout_marginBottom="10dp"
                     android:overScrollMode="never"
-                    android:text="Schedules By Date:"
+                    android:text="Repeating Tasks:"
+                    android:textColor="@color/white"
+                    android:textSize="15dp" />
+
+                <FrameLayout
+                    android:id="@+id/repeat_task_box"
+                    android:layout_width="match_parent"
+                    android:layout_height="125dp"
+                    android:layout_margin="2dp"
+                    android:background="@drawable/main_shape"
+                    android:layout_below="@+id/text3"
+                    android:padding="0.5dp">
+
+                <RelativeLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/main_shape2">
+
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/repeat_task_recycler"
+                        android:layout_width="fill_parent"
+                        android:layout_height="fill_parent"
+                        android:orientation="horizontal"
+                        android:overScrollMode="never"
+                        android:padding="5dp" />
+
+                </RelativeLayout>
+                </FrameLayout>
+
+
+                <TextView
+                    android:id="@+id/text4"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@id/repeat_task_box"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginEnd="10dp"
+                    android:overScrollMode="never"
+                    android:text="Schedules After Today:"
                     android:textColor="@color/white"
                     android:textSize="15dp" />
 
@@ -168,26 +225,27 @@
                     android:id="@+id/noSchedule"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:layout_margin="10dp"
-                    android:layout_below="@+id/text3">
+                    android:layout_below="@+id/text4"
+                    android:layout_margin="8dp">
 
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="100dp"
-                        android:text="No Schedule! Create plus icon to make a schedule"
-                        android:textColor="#787878"
-                        android:textAlignment="center"
                         android:lineSpacingExtra="10dp"
-                        android:textSize="25dp"/>
+                        android:text="No Schedule! Create below icons to make a schedule"
+                        android:textAlignment="center"
+                        android:textColor="#787878"
+                        android:textSize="22dp" />
 
                 </RelativeLayout>
+
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/recyclerHome"
                     android:layout_width="fill_parent"
                     android:layout_height="fill_parent"
-                    android:layout_below="@id/text3"
-                    android:overScrollMode="never"
-                    android:layout_marginTop="10dp"/>
+                    android:layout_below="@id/text4"
+                    android:layout_marginTop="10dp"
+                    android:overScrollMode="never" />
             </RelativeLayout>
 
         </RelativeLayout>

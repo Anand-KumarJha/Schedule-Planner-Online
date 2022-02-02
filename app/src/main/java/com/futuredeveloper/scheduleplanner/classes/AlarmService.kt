@@ -36,6 +36,7 @@ class AlarmService(private val context: Context, private val requestCode: Int, p
                     action = Constants.ACTION_SET_REPETITIVE_EXACT
                     putExtra(Constants.EXTRA_EXACT_ALARM_TIME, timeInMillis)
                     putExtra("message", message)
+                    putExtra("requestCode",requestCode)
                 },requestCode
             )
         )
@@ -51,10 +52,18 @@ class AlarmService(private val context: Context, private val requestCode: Int, p
 
 
     fun cancelAlarm(timeInMillis: Long){
-
         alarmManager?.cancel(getPendingIntent(
             getIntent().apply {
                 action = Constants.ACTION_SET_EXACT
+                putExtra(Constants.EXTRA_EXACT_ALARM_TIME, timeInMillis)
+            },requestCode
+        ))
+    }
+
+    fun cancelRepeatAlarm(timeInMillis: Long){
+        alarmManager?.cancel(getPendingIntent(
+            getIntent().apply {
+                action = Constants.ACTION_SET_REPETITIVE_EXACT
                 putExtra(Constants.EXTRA_EXACT_ALARM_TIME, timeInMillis)
             },requestCode
         ))

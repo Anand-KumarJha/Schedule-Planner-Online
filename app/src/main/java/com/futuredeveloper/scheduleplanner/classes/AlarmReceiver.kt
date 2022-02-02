@@ -24,6 +24,8 @@ import java.util.concurrent.TimeUnit
 
 
 class AlarmReceiver: BroadcastReceiver() {
+
+    private var requestCode = 0
     private var timeInMillis: Long? = 0L
     override fun onReceive(context: Context, intent: Intent?) {
         timeInMillis = intent?.getLongExtra(Constants.EXTRA_EXACT_ALARM_TIME, 0L)
@@ -31,6 +33,13 @@ class AlarmReceiver: BroadcastReceiver() {
 
         when (intent?.action) {
             Constants.ACTION_SET_EXACT -> {
+                buildNotification(context, "Task is Scheduled", message.toString())
+            }
+            Constants.ACTION_SET_REPETITIVE_EXACT -> {
+                requestCode = intent.getIntExtra("requestCode",0)
+                val alarmReceiver = AlarmService(context,requestCode,message.toString())
+                println("Alarm created - $requestCode")
+                setRepetitiveAlarm(alarmReceiver)
                 buildNotification(context, "Task is Scheduled", message.toString())
             }
         }
@@ -58,8 +67,8 @@ class AlarmReceiver: BroadcastReceiver() {
         }
 
         try {
-            val notification: Uri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
-            val r = RingtoneManager.getRingtone(context, notification)
+            val rawPathUri: Uri = Uri.parse("android.resource://com.futuredeveloper.scheduleplanner" + "/" + R.raw.notify);
+            val r = RingtoneManager.getRingtone(context, rawPathUri)
             r.play()
         } catch (e: Exception) {
             e.printStackTrace()
@@ -71,8 +80,6 @@ class AlarmReceiver: BroadcastReceiver() {
             .setStyle(NotificationCompat.BigTextStyle()
                 .bigText(message))
             .setPriority(NotificationCompat.PRIORITY_HIGH)
-            .setVibrate(longArrayOf(1000, 1000, 1000, 1000, 1000 ))
-            .setSound(Settings.System.DEFAULT_NOTIFICATION_URI)
             // Set the intent that will fire when the user taps the notification
             .setContentIntent(pendingIntent)
             .setAutoCancel(true)
@@ -82,15 +89,17 @@ class AlarmReceiver: BroadcastReceiver() {
     }
 
     private fun setRepetitiveAlarm(alarmService: AlarmService) {
+        val timeInMillis2 = timeInMillis
         val cal = Calendar.getInstance().apply {
-            this.timeInMillis = timeInMillis + TimeUnit.DAYS.toMillis(7)
-            Timber.d("Set alarm for next week same time - ${convertDate(this.timeInMillis)}")
+            if (timeInMillis2 != null) {
+                this.timeInMillis = timeInMillis2 + TimeUnit.DAYS.toMillis(1)
+            }
         }
+        println(cal.timeInMillis)
         alarmService.setRepetitiveAlarm(cal.timeInMillis)
     }
 
     private fun convertDate(timeInMillis: Long): String =
         DateFormat.format("dd/MM/yyyy hh:mm:ss", timeInMillis).toString()
-
 
 }

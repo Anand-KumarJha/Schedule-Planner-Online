@@ -22,19 +22,18 @@ import java.util.*
 import java.util.concurrent.TimeUnit
 
 
-class CreatePlanAdapter(val context: Context, private val itemList: List<TaskEntity>):
-    RecyclerView.Adapter<CreatePlanAdapter.CreateTaskViewHolder>() {
+class RepeatingTaskAdapter(val context: Context, private val itemList: List<TaskEntity>):
+    RecyclerView.Adapter<RepeatingTaskAdapter.RepeatTaskViewHolder>() {
 
     private var timeInMillis: Long = 0
 
-    class CreateTaskViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+    class RepeatTaskViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         var count: TextView = view.findViewById(R.id.count)
         var time: TextView = view.findViewById(R.id.time)
         var title: TextView = view.findViewById(R.id.title)
         var description: TextView = view.findViewById(R.id.description)
         var taskDone: ImageView = view.findViewById(R.id.done)
         var deleteButton: ImageView = view.findViewById(R.id.delete2)
-        var todayDone: ImageView = view.findViewById(R.id.today_done)
         var editButton: ImageView = view.findViewById(R.id.edit2)
 
 
@@ -43,14 +42,14 @@ class CreatePlanAdapter(val context: Context, private val itemList: List<TaskEnt
         var intentTitle = ""
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CreateTaskViewHolder {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RepeatTaskViewHolder {
         val view =
-            LayoutInflater.from(parent.context).inflate(R.layout.create_task_single_row, parent, false)
-        return CreateTaskViewHolder(view)
+            LayoutInflater.from(parent.context).inflate(R.layout.repeat_task_single_row, parent, false)
+        return RepeatTaskViewHolder(view)
     }
 
     @SuppressLint("SetTextI18n")
-    override fun onBindViewHolder(holder: CreateTaskViewHolder, position: Int) {
+    override fun onBindViewHolder(holder: RepeatTaskViewHolder, position: Int) {
 
         var count = 0
         var start = 0
@@ -71,71 +70,55 @@ class CreatePlanAdapter(val context: Context, private val itemList: List<TaskEnt
         }
 
         timeInMillis = (sb.toString()).toLong()
-        if(context is CreatePlanActivity){
-            holder.intentDate = context.dateButton?.text.toString()
-            holder.intentNotesDescription = context.notesDescription
-            holder.intentTitle = context.title.text.toString()
+        holder.deleteButton.visibility = View.VISIBLE
+        holder.taskDone.visibility = View.VISIBLE
+        holder.editButton.visibility = View.VISIBLE
+        holder.taskDone.setImageResource(R.drawable.actionbar_not_done_task)
+        holder.deleteButton.setImageResource(R.drawable.actionbar_delete_task)
 
-            holder.todayDone.visibility = View.GONE
-            holder.deleteButton.visibility = View.VISIBLE
-            holder.taskDone.visibility = View.VISIBLE
-            holder.editButton.visibility = View.VISIBLE
-            holder.taskDone.setImageResource(R.drawable.actionbar_not_done_task)
-            holder.deleteButton.setImageResource(R.drawable.actionbar_delete_task)
+        if(itemList[position].taskDone){
+            holder.taskDone.setImageResource(R.drawable.actionbar_done_task)
+        }
 
-            if(itemList[position].taskDone){
-                holder.taskDone.setImageResource(R.drawable.actionbar_done_task)
-            }
+        holder.taskDone.setOnClickListener{
+            val taskEntity= GetTaskByIds(context,itemList[position].task_id).execute().get()
 
-            holder.taskDone.setOnClickListener{
-                val taskEntity= GetTaskByIds(context,itemList[position].task_id).execute().get()
-
-                if(taskEntity.taskDone){
-                    holder.taskDone.setImageResource(R.drawable.actionbar_not_done_task)
-                    UpdateTaskById(context,itemList[position].task_id).execute()
-                    Toast.makeText(it.context,"Task Not Completed", Toast.LENGTH_SHORT).show()
-                }else{
-                    holder.taskDone.setImageResource(R.drawable.actionbar_done_task)
-                    UpdateTaskById(context,itemList[position].task_id).execute()
-                    Toast.makeText(it.context,"Task Completed", Toast.LENGTH_SHORT).show()
-                }
-                (context as Activity).recreate()
-            }
-            holder.editButton.setOnClickListener {
-                val intent = Intent(context, CreateTaskActivity::class.java).apply {
-                    putExtra("date",holder.intentDate)
-                    putExtra("notesDescription",holder.intentNotesDescription)
-                    putExtra("title", holder.intentTitle)
-                    putExtra("taskId",itemList[position].task_id)
-                    putExtra("taskTime",itemList[position].taskTime)
-                    putExtra("taskTitle",itemList[position].taskTitle)
-                    putExtra("taskDescription",itemList[position].taskDescription)
-                }
-
-                (context as Activity).startActivity(intent)
-                (context as Activity).overridePendingTransition(R.anim.pull_up_from_bottom,0)
-                (context as Activity).finish()
-            }
-            holder.deleteButton.setOnClickListener {
-                val logout = androidx.appcompat.app.AlertDialog.Builder(it.context)
-                logout.setTitle("Delete Task")
-                logout.setMessage("Do you want to delete selected task?")
-                logout.setPositiveButton("Yes") { text, listener ->
-                    delete(position)
-                }
-                logout.setNegativeButton("No") { text, listener ->
-
-                }
-                logout.create()
-                logout.show()
-            }
-        }else{
-            if(itemList[position].taskDone){
-                holder.todayDone.visibility = View.VISIBLE
-                holder.todayDone.setImageResource(R.drawable.actionbar_done_task)
+            if(taskEntity.taskDone){
+                holder.taskDone.setImageResource(R.drawable.actionbar_not_done_task)
+                UpdateTaskById(context,itemList[position].task_id).execute()
+                Toast.makeText(it.context,"Task Not Completed", Toast.LENGTH_SHORT).show()
             }else{
-                holder.todayDone.visibility = View.VISIBLE
+                holder.taskDone.setImageResource(R.drawable.actionbar_done_task)
+                UpdateTaskById(context,itemList[position].task_id).execute()
+                Toast.makeText(it.context,"Task Completed", Toast.LENGTH_SHORT).show()
             }
+            (context as Activity).recreate()
+        }
+        holder.editButton.setOnClickListener {
+            val intent = Intent(context, CreateTaskActivity::class.java).apply {
+                putExtra("repeat",true)
+                putExtra("taskId",itemList[position].task_id)
+                putExtra("taskTime",itemList[position].taskTime)
+                putExtra("taskTitle",itemList[position].taskTitle)
+                putExtra("taskDescription",itemList[position].taskDescription)
+            }
+
+            (context as Activity).startActivity(intent)
+            (context as Activity).overridePendingTransition(R.anim.pull_up_from_bottom,0)
+            (context as Activity).finish()
+        }
+        holder.deleteButton.setOnClickListener {
+            val logout = androidx.appcompat.app.AlertDialog.Builder(it.context)
+            logout.setTitle("Delete Task")
+            logout.setMessage("Do you want to delete selected task?")
+            logout.setPositiveButton("Yes") { text, listener ->
+                delete(position)
+            }
+            logout.setNegativeButton("No") { text, listener ->
+
+            }
+            logout.create()
+            logout.show()
         }
 
         holder.count.text = (1+position).toString()
@@ -161,7 +144,8 @@ class CreatePlanAdapter(val context: Context, private val itemList: List<TaskEnt
 
         val alarmService = AlarmService(context as Activity, alarmNo, "")
         println("Canceled alarm ----------------$alarmNo")
-        cancelAlarm{alarmService.cancelAlarm(timeInMillis)}
+
+        cancelAlarm{alarmService.cancelRepeatAlarm(timeInMillis)}
 
         DBAsyncTask2(
             context,
@@ -229,4 +213,5 @@ class CreatePlanAdapter(val context: Context, private val itemList: List<TaskEnt
             return taskEntity
         }
     }
+
 }

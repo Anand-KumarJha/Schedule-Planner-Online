@@ -13,16 +13,20 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.RecyclerView.HORIZONTAL
 import androidx.recyclerview.widget.RecyclerView.ViewHolder
 import androidx.room.Room
 import com.futuredeveloper.scheduleplanner.R
 import com.futuredeveloper.scheduleplanner.activity.CreatePlanActivity
+import com.futuredeveloper.scheduleplanner.activity.CreateTaskActivity
 import com.futuredeveloper.scheduleplanner.adapter.CreatePlanAdapter
 import com.futuredeveloper.scheduleplanner.adapter.MainRecyclerAdapter
+import com.futuredeveloper.scheduleplanner.adapter.RepeatingTaskAdapter
 import com.futuredeveloper.scheduleplanner.callback.SwipeGesture
 import com.futuredeveloper.scheduleplanner.classes.AlarmService
 import com.futuredeveloper.scheduleplanner.database.ScheduleEntity
 import com.futuredeveloper.scheduleplanner.database.ScheduleRoomDatabase
+import com.futuredeveloper.scheduleplanner.database.TaskEntity
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import java.util.*
 
@@ -48,7 +52,12 @@ class HomeFragment : Fragment() {
     private lateinit var recyclerHome2: RecyclerView
     private lateinit var layoutManager2: RecyclerView.LayoutManager
     private lateinit var recyclerAdapter2: CreatePlanAdapter
+    private lateinit var repeatRecycler: RecyclerView
+    private lateinit var repeatLayoutManager: RecyclerView.LayoutManager
+    private lateinit var repeatRecyclerAdapter: RepeatingTaskAdapter
+
     private lateinit var createIcon: FloatingActionButton
+    private lateinit var repeatedTask: FloatingActionButton
     private lateinit var tasksDone: TextView
     private lateinit var tasksDonePercentage: TextView
     private lateinit var progressBar: ProgressBar
@@ -57,6 +66,9 @@ class HomeFragment : Fragment() {
     private lateinit var verticalRow: View
     private lateinit var noSchedule: RelativeLayout
     private lateinit var nestedScrollView:NestedScrollView
+    private lateinit var repeatText: TextView
+    private lateinit var scheduleByDateText: TextView
+    private lateinit var repeatTaskBox: FrameLayout
     private var timeInMillis: Long = 0L
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -79,6 +91,9 @@ class HomeFragment : Fragment() {
         createIcon = view.findViewById(R.id.create_icon)
         recyclerHome2 = view.findViewById(R.id.recyclerHome2)
         layoutManager2 = LinearLayoutManager(activity)
+        repeatRecycler = view.findViewById(R.id.repeat_task_recycler)
+        repeatLayoutManager = LinearLayoutManager(activity, HORIZONTAL, false)
+
         tasksDone = view.findViewById(R.id.tasksDone)
         tasksDonePercentage = view.findViewById(R.id.tasksDonePercentage)
         progressBar = view.findViewById(R.id.progress_bar)
@@ -87,16 +102,36 @@ class HomeFragment : Fragment() {
         verticalRow = view.findViewById(R.id.vertical_row)
         noSchedule = view.findViewById(R.id.noSchedule)
         nestedScrollView = view.findViewById(R.id.nestedScrollView)
+        repeatedTask = view.findViewById(R.id.repeat_icon)
+        repeatText = view.findViewById(R.id.text3)
+        scheduleByDateText = view.findViewById(R.id.text4)
+        repeatTaskBox = view.findViewById(R.id.repeat_task_box)
 
         nestedScrollView.isFocusableInTouchMode = true
         nestedScrollView.fullScroll(View.FOCUS_UP)
         nestedScrollView.smoothScrollTo(0,0)
 
+        val repeatTasksList = GetAllRepeatTasks(activity as Context).execute().get()
+        if(repeatTasksList.isEmpty()){
+            repeatText.visibility = View.GONE
+            repeatTaskBox.visibility = View.GONE
+        }
+        repeatRecyclerAdapter = RepeatingTaskAdapter(activity as Context,repeatTasksList)
+        repeatRecycler.setHasFixedSize(true);
+        repeatRecycler.adapter = repeatRecyclerAdapter
+        repeatRecycler.layoutManager = repeatLayoutManager
+
         val scheduleList = RetrieveScheduleItems(activity as Context).execute().get()
         val scheduleList2 = ArrayList<ScheduleEntity>()
         for(item in scheduleList){
-            if(item.scheduleDate != getTodaysDate()){
+            if(item.scheduleDate != getTodaysDate() && makeDate(item.scheduleDate) > makeDate(getTodaysDate())){
                 scheduleList2.add(item)
+            }
+        }
+        if(repeatTasksList.isNotEmpty()){
+            noSchedule.visibility = View.GONE
+            if(scheduleList2.isEmpty()){
+                scheduleByDateText.visibility = View.GONE
             }
         }
         if(scheduleList2.size > 0){
@@ -214,6 +249,13 @@ class HomeFragment : Fragment() {
             }
             delete.create()
             delete.show()
+        }
+        repeatedTask.setOnClickListener {
+            val intent = Intent(context, CreateTaskActivity::class.java)
+            intent.putExtra("repeat",true)
+            startActivity(intent)
+            activity?.overridePendingTransition(R.anim.pull_up_from_bottom,0)
+            activity?.finish()
         }
         createIcon.setOnClickListener {
             val intent = Intent(context, CreatePlanActivity::class.java)
@@ -365,6 +407,17 @@ class HomeFragment : Fragment() {
             val ret = db.scheduleDao().getScheduleById(id)
             db.close()
             return ret
+        }
+    }
+    class GetAllRepeatTasks(val context: Context) :
+        android.os.AsyncTask<Void, Void, List<TaskEntity>>() {
+
+        override fun doInBackground(vararg params: Void?): List<TaskEntity> {
+            val db = androidx.room.Room.databaseBuilder(context, com.futuredeveloper.scheduleplanner.database.TaskDatabase::class.java, "Task-Db").build()
+
+            val taskEntity: List<TaskEntity> = db.taskDao().getAllRepeatTasks()
+            db.close()
+            return taskEntity
         }
     }
 

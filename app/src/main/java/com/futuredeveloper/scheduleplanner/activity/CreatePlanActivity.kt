@@ -329,10 +329,7 @@ class CreatePlanActivity : AppCompatActivity() {
 
             when (mode) {
                 1 -> {
-                    if(db.scheduleDao().deleteIfExist(scheduleEntity.schedule_id) == 1){
-                        db.scheduleDao().deleteSchedule(scheduleEntity)
-                    }
-                    db.scheduleDao().insertSchedule(scheduleEntity)
+                    db.scheduleDao().updateSchedule(scheduleEntity)
                     db.close()
                     return true
                 }

@@ -1,9 +1,6 @@
 package com.futuredeveloper.scheduleplanner.database
 
-import androidx.room.Dao
-import androidx.room.Delete
-import androidx.room.Insert
-import androidx.room.Query
+import androidx.room.*
 
 @Dao
 interface ScheduleDao {
@@ -13,6 +10,9 @@ interface ScheduleDao {
     @Insert
     //use suspend fun
     fun insertSchedule(schedule: ScheduleEntity)
+
+    @Update
+    fun updateSchedule(schedule: ScheduleEntity)
 
     @Delete
     //use suspend fun
