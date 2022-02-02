@@ -1,5 +1,6 @@
 package com.futuredeveloper.scheduleplanner.fragment
 
+import android.app.Activity
 import android.content.Context
 import android.os.Bundle
 import androidx.fragment.app.Fragment
@@ -7,10 +8,13 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.futuredeveloper.scheduleplanner.R
+import com.futuredeveloper.scheduleplanner.activity.MainActivity
 import com.futuredeveloper.scheduleplanner.adapter.MainRecyclerAdapter
+import com.futuredeveloper.scheduleplanner.callback.SwipeGesture
 import com.futuredeveloper.scheduleplanner.database.ScheduleEntity
 import java.util.*
 
@@ -68,6 +72,24 @@ class PastScheduleFragment : Fragment() {
         recyclerHome.adapter = recyclerAdapter
         recyclerHome.layoutManager = layoutManager
 
+        val swipeGesture = object : SwipeGesture(context as Activity){
+            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
+                val delete = androidx.appcompat.app.AlertDialog.Builder(context as Activity)
+                delete.setTitle("Delete Schedule")
+                delete.setMessage("Do you want to delete selected schedule?")
+                delete.setPositiveButton("Yes") { text, listener ->
+                    recyclerAdapter.deleteIt(viewHolder.adapterPosition)
+                }
+                delete.setNegativeButton("No") { text, listener ->
+                    recyclerAdapter.notifyDataSetChanged()
+                }
+
+                delete.create()
+                delete.show()
+            }
+        }
+        val touchHelper = ItemTouchHelper(swipeGesture)
+        touchHelper.attachToRecyclerView(recyclerHome)
         return view
     }
 

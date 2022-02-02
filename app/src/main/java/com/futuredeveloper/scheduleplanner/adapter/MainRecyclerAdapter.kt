@@ -17,14 +17,11 @@ class MainRecyclerAdapter(
     val context: Context,
     private val itemList: List<ScheduleEntity>
     ) : RecyclerView.Adapter<MainRecyclerAdapter.MainViewHolder>() {
-
         private var timeInMillis: Long = 0L
         class MainViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-
             var recyclerHome: RecyclerView = view.findViewById(R.id.recyclerRecyclerView)
             lateinit var layoutManager: RecyclerView.LayoutManager
             lateinit var recyclerAdapter: TaskRecyclerAdapter
-
 
             var scheduleDate: TextView = view.findViewById(R.id.schedule_date)
             var scheduleDay:  TextView = view.findViewById(R.id.schedule_day)
@@ -91,7 +88,6 @@ class MainRecyclerAdapter(
         context.finish()
     }
     fun deleteIt(position: Int){
-
         for(i in itemList[position].tasks){
             var count1 = 0
             var start = 0

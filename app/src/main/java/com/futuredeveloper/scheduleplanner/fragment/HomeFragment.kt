@@ -398,7 +398,7 @@ class HomeFragment : Fragment() {
         }
 
     }
-    class DBAsyncTask1(val context: Context, val id: String) :
+    class DBAsyncTask1(val context: Context, val id: String):
         android.os.AsyncTask<Void, Void, ScheduleEntity>() {
 
         override fun doInBackground(vararg params: Void?): ScheduleEntity {

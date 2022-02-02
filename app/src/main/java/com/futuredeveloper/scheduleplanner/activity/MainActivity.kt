@@ -1,16 +1,29 @@
 package com.futuredeveloper.scheduleplanner.activity
 
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.view.MenuItem
 import android.widget.FrameLayout
+import android.widget.Toast
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
+import com.futuredeveloper.scheduleplanner.BuildConfig
 import com.futuredeveloper.scheduleplanner.R
-import com.futuredeveloper.scheduleplanner.fragment.*
+import com.futuredeveloper.scheduleplanner.fragment.AboutFragment
+import com.futuredeveloper.scheduleplanner.fragment.HomeFragment
+import com.futuredeveloper.scheduleplanner.fragment.NotesFragment
+import com.futuredeveloper.scheduleplanner.fragment.PastScheduleFragment
 import com.google.android.material.navigation.NavigationView
+import com.google.android.play.core.review.ReviewInfo
+import com.google.android.play.core.review.ReviewManager
+import com.google.android.play.core.review.ReviewManagerFactory
+import com.google.android.play.core.tasks.Task
+import java.io.File
+
 
 class MainActivity : AppCompatActivity() {
 
@@ -19,6 +32,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var toolbar: androidx.appcompat.widget.Toolbar
     private lateinit var navigationView: NavigationView
     private lateinit var frameLayout: FrameLayout
+    private var reviewInfo: ReviewInfo? = null
+    private var manager: ReviewManager? = null
     private var previousMenuItem: MenuItem? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -34,11 +49,6 @@ class MainActivity : AppCompatActivity() {
         setUpToolbar()
         openHome()
 
-        //Database
-        //finished
-
-
-        //Hamburger Icon To Drawer Setup
         val actionBarDrawerToggle = ActionBarDrawerToggle(
             this@MainActivity, drawerLayout,
             R.string.open_drawer,
@@ -49,7 +59,6 @@ class MainActivity : AppCompatActivity() {
 
         //Drawer Menu Clicks Handling
         navigationView.setNavigationItemSelectedListener {
-
             //Highlighting the selected item
             if (previousMenuItem != null) {
                 previousMenuItem?.isChecked = false
@@ -61,12 +70,6 @@ class MainActivity : AppCompatActivity() {
             when (it.itemId) {
                 R.id.home -> {
                     openHome()
-                    drawerLayout.closeDrawers()
-                }
-                R.id.profile -> {
-                    supportFragmentManager.beginTransaction()
-                        .replace(R.id.frame, ProfileFragment()).commit()
-                    supportActionBar?.title = "Profile"
                     drawerLayout.closeDrawers()
                 }
                 R.id.notes -> {
@@ -81,11 +84,43 @@ class MainActivity : AppCompatActivity() {
                     supportActionBar?.title = "Past Schedules"
                     drawerLayout.closeDrawers()
                 }
-                R.id.settings -> {
-                    supportFragmentManager.beginTransaction()
-                        .replace(R.id.frame, BackupFragment()).commit()
-                    supportActionBar?.title = "Settings"
-                    drawerLayout.closeDrawers()
+                R.id.shareApp -> {
+                    val delete = androidx.appcompat.app.AlertDialog.Builder(this)
+                    delete.setTitle("Share App")
+                    delete.setMessage("How do you want to share the app?")
+                    delete.setPositiveButton("Link") { text, listener ->
+                        try{
+                            val intent = Intent(Intent.ACTION_SEND)
+                            intent.setType("text/plain")
+                            intent.putExtra(Intent.EXTRA_SUBJECT, "Schedule your all tasks with this amazing app");
+                            intent.putExtra(Intent.EXTRA_TEXT, "https://play.google.com/store/apps/details?id=" + BuildConfig.APPLICATION_ID + "\n\n");
+                            startActivity(Intent.createChooser(intent,"Share With"))
+                        }catch (e: Exception){}
+                    }
+                    delete.setNegativeButton("APK") { text, listener ->
+                        val api = applicationContext.applicationInfo
+                        val apkPath = api.sourceDir
+                        val intent = Intent(Intent.ACTION_SEND)
+                        intent.type = "application/vnd.android.package-archive"
+                        intent.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(File(apkPath)))
+                        intent.putExtra(Intent.EXTRA_TEXT, "Schedule your all tasks with this amazing app");
+                        startActivity(Intent.createChooser(intent,"Share With"))
+                    }
+                    delete.create()
+                    delete.show()
+                }
+                R.id.giveRating -> {
+                    try{
+                        val uri = Uri.parse("market://details?id=$packageName")
+                        val intent = Intent(Intent.ACTION_VIEW,uri)
+                        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                        startActivity(intent)
+                    }catch (e: Exception){
+                        val uri = Uri.parse("https://play.google.com/store/apps/details?id=" + BuildConfig.APPLICATION_ID)
+                        val intent = Intent(Intent.ACTION_VIEW,uri)
+                        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                        startActivity(intent)
+                    }
                 }
                 R.id.about -> {
                     supportFragmentManager.beginTransaction()

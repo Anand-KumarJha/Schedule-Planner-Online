@@ -1,11 +1,15 @@
 package com.futuredeveloper.scheduleplanner.fragment
 
+import android.content.Intent
+import android.content.Intent.EXTRA_EMAIL
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
+import androidx.fragment.app.Fragment
 import com.futuredeveloper.scheduleplanner.R
+
 
 // TODO: Rename parameter arguments, choose names that match
 // the com.example.scheduleplanner.fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -21,6 +25,7 @@ class AboutFragment : Fragment() {
     // TODO: Rename and change types of parameters
     private var param1: String? = null
     private var param2: String? = null
+    lateinit var supportButton: Button
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -34,8 +39,22 @@ class AboutFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        // Inflate the layout for this com.example.scheduleplanner.fragment
-        return inflater.inflate(R.layout.fragment_about, container, false)
+        val view = inflater.inflate(R.layout.fragment_about, container, false)
+
+        supportButton = view.findViewById(R.id.contactButton)
+
+        supportButton.setOnClickListener {
+            val addresses = arrayOf("futuredeveloperx@gmail.com")
+            val intent1 = Intent(Intent.ACTION_SEND)
+            intent1.type = "*/*"
+            intent1.putExtra(EXTRA_EMAIL, addresses)
+            intent1.putExtra(Intent.EXTRA_SUBJECT, "Support Regarding Schedule Planner App")
+            intent1.putExtra(Intent.EXTRA_TEXT, "")
+
+            startActivity(Intent.createChooser(intent1,"Send mail with"))
+        }
+
+        return view
     }
 
     companion object {
