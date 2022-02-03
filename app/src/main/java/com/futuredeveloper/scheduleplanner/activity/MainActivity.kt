@@ -17,6 +17,7 @@ import com.futuredeveloper.scheduleplanner.fragment.AboutFragment
 import com.futuredeveloper.scheduleplanner.fragment.HomeFragment
 import com.futuredeveloper.scheduleplanner.fragment.NotesFragment
 import com.futuredeveloper.scheduleplanner.fragment.PastScheduleFragment
+import com.google.android.gms.ads.MobileAds
 import com.google.android.material.navigation.NavigationView
 import com.google.android.play.core.review.ReviewInfo
 import com.google.android.play.core.review.ReviewManager
@@ -40,6 +41,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        MobileAds.initialize(this) {}
         drawerLayout = findViewById(R.id.drawerLayout)
         coordinatorLayout = findViewById(R.id.coordinator)
         toolbar = findViewById(R.id.toolbar)

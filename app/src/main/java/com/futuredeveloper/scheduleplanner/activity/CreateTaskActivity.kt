@@ -1,13 +1,16 @@
 package com.futuredeveloper.scheduleplanner.activity
 
-import android.app.Activity
 import android.app.TimePickerDialog
 import android.app.TimePickerDialog.OnTimeSetListener
+import android.content.ContentValues
+import android.content.ContentValues.TAG
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.AsyncTask
 import android.os.Bundle
+import android.os.Handler
+import android.util.Log
 import android.view.View
 import android.widget.Button
 import android.widget.EditText
@@ -19,11 +22,16 @@ import com.futuredeveloper.scheduleplanner.R
 import com.futuredeveloper.scheduleplanner.classes.AlarmService
 import com.futuredeveloper.scheduleplanner.database.TaskDatabase
 import com.futuredeveloper.scheduleplanner.database.TaskEntity
+import com.google.android.gms.ads.AdError
+import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.FullScreenContentCallback
+import com.google.android.gms.ads.LoadAdError
+import com.google.android.gms.ads.interstitial.InterstitialAd
+import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.*
-import kotlin.math.min
 
 
 class CreateTaskActivity : AppCompatActivity() {
@@ -45,10 +53,25 @@ class CreateTaskActivity : AppCompatActivity() {
     private lateinit var alarmService: AlarmService
     private lateinit var sharedPreference: SharedPreferences
     private var repeatBoolean = false
+    private var mInterstitialAd: InterstitialAd? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_create_task)
+
+        val adRequest = AdRequest.Builder().build()
+
+        InterstitialAd.load(this,"ca-app-pub-3940256099942544/1033173712", adRequest, object : InterstitialAdLoadCallback() {
+            override fun onAdFailedToLoad(adError: LoadAdError) {
+                Log.d(ContentValues.TAG, adError?.message)
+                mInterstitialAd = null
+            }
+
+            override fun onAdLoaded(interstitialAd: InterstitialAd) {
+                Log.d(ContentValues.TAG, "Ad was loaded.")
+                mInterstitialAd = interstitialAd
+            }
+        })
 
         sharedPreference = getSharedPreferences("schedule_planner_preference", MODE_PRIVATE)
         val alarmNo = sharedPreference.getInt("alarmNo", 0)
@@ -245,7 +268,7 @@ class CreateTaskActivity : AppCompatActivity() {
                                 2
                             ).execute()
                             if (async.get()) {
-                                Toast.makeText(
+                               Toast.makeText(
                                     this,
                                     "Task updated!",
                                     Toast.LENGTH_SHORT
@@ -370,6 +393,14 @@ class CreateTaskActivity : AppCompatActivity() {
                             2
                         ).execute()
                         if (async.get()) {
+                            Handler().postDelayed({
+                                if (mInterstitialAd != null) {
+                                    println("executed")
+                                    mInterstitialAd?.show(this)
+                                } else {
+                                    Log.d("TAG", "The interstitial ad wasn't ready yet.")
+                                }
+                            }, 3000)
                             Toast.makeText(
                                 this,
                                 "Task updated!",
@@ -378,9 +409,7 @@ class CreateTaskActivity : AppCompatActivity() {
                             onBackPressed()
                         }
                     }
-                    logout.setNegativeButton("No") { text, listener ->
-
-                    }
+                    logout.setNegativeButton("No") { text, listener -> }
                     logout.create()
                     logout.show()
                 }
@@ -523,19 +552,72 @@ class CreateTaskActivity : AppCompatActivity() {
     }
 
     override fun onBackPressed() {
-        if(repeatBoolean){
-            val intent = Intent(this, MainActivity::class.java)
-            startActivity(intent)
-            overridePendingTransition(R.anim.pull_up_from_top,R.anim.push_out_to_bottom)
-            finish()
-        }else{
-            val intent = Intent(this, CreatePlanActivity::class.java)
-            intent.putExtra("date",date.toString())
-            intent.putExtra("notesDescription",notesDescription)
-            intent.putExtra("title", scheduleTitle)
-            startActivity(intent)
-            overridePendingTransition(R.anim.pull_up_from_top,R.anim.push_out_to_bottom)
-            finish()
+        if (mInterstitialAd != null) {
+            mInterstitialAd?.show(this)
+
+            mInterstitialAd?.fullScreenContentCallback = object: FullScreenContentCallback() {
+                override fun onAdDismissedFullScreenContent() {
+                    Log.d(TAG, "Ad was dismissed.")
+
+                    if(repeatBoolean){
+                        val intent = Intent(this@CreateTaskActivity, MainActivity::class.java)
+                        startActivity(intent)
+                        overridePendingTransition(R.anim.pull_up_from_top,R.anim.push_out_to_bottom)
+                        finish()
+                    }else{
+                        val intent = Intent(this@CreateTaskActivity, CreatePlanActivity::class.java)
+                        intent.putExtra("date",date.toString())
+                        intent.putExtra("notesDescription",notesDescription)
+                        intent.putExtra("title", scheduleTitle)
+
+                        startActivity(intent)
+                        overridePendingTransition(R.anim.pull_up_from_top,R.anim.push_out_to_bottom)
+                        finish()
+                    }
+                }
+
+                override fun onAdFailedToShowFullScreenContent(adError: AdError?) {
+                    Log.d(TAG, "Ad failed to show.")
+
+                    if(repeatBoolean){
+                        val intent = Intent(this@CreateTaskActivity, MainActivity::class.java)
+                        startActivity(intent)
+                        overridePendingTransition(R.anim.pull_up_from_top,R.anim.push_out_to_bottom)
+                        finish()
+                    }else{
+                        val intent = Intent(this@CreateTaskActivity, CreatePlanActivity::class.java)
+                        intent.putExtra("date",date.toString())
+                        intent.putExtra("notesDescription",notesDescription)
+                        intent.putExtra("title", scheduleTitle)
+
+                        startActivity(intent)
+                        overridePendingTransition(R.anim.pull_up_from_top,R.anim.push_out_to_bottom)
+                        finish()
+                    }
+                }
+
+                override fun onAdShowedFullScreenContent() {
+                    Log.d(TAG, "Ad showed fullscreen content.")
+                    mInterstitialAd = null
+                }
+            }
+        } else {
+            if(repeatBoolean){
+                val intent = Intent(this, MainActivity::class.java)
+                startActivity(intent)
+                overridePendingTransition(R.anim.pull_up_from_top,R.anim.push_out_to_bottom)
+                finish()
+            }else{
+                val intent = Intent(this, CreatePlanActivity::class.java)
+                intent.putExtra("date",date.toString())
+                intent.putExtra("notesDescription",notesDescription)
+                intent.putExtra("title", scheduleTitle)
+
+                startActivity(intent)
+                overridePendingTransition(R.anim.pull_up_from_top,R.anim.push_out_to_bottom)
+                finish()
+            }
         }
+
     }
 }

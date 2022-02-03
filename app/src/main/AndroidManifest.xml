@@ -4,10 +4,9 @@
     package="com.futuredeveloper.scheduleplanner">
 
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.VIBRATE" />
-    <uses-permission android:name="android.permission.WAKE_LOCK"/>
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
 
     <application
         android:allowBackup="true"
@@ -17,6 +16,11 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.SchedulePlanner"
         tools:targetApi="n">
+
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="ca-app-pub-3940256099942544~3347511713" />
+
         <activity
             android:name=".activity.NotesActivity"
             android:exported="false" />
@@ -48,15 +52,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
-        <receiver android:name=".classes.AlarmReceiver" android:exported="true" android:enabled="true">
-            <intent-filter>
-                <action android:name="android.intent.action.BOOT_COMPLETED"/>
-                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
-                <category android:name="android.intent.category.DEFAULT"/>
-            </intent-filter>
-        </receiver>
-
     </application>
 
 </manifest>

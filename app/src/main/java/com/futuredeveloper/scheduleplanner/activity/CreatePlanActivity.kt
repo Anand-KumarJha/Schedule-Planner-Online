@@ -5,11 +5,13 @@ import android.app.DatePickerDialog
 import android.app.DatePickerDialog.OnDateSetListener
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
 import android.os.AsyncTask
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.MenuItem
 import android.view.View
 import android.widget.*
@@ -27,6 +29,10 @@ import com.futuredeveloper.scheduleplanner.database.ScheduleEntity
 import com.futuredeveloper.scheduleplanner.database.ScheduleRoomDatabase
 import com.futuredeveloper.scheduleplanner.database.TaskDatabase
 import com.futuredeveloper.scheduleplanner.database.TaskEntity
+import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.LoadAdError
+import com.google.android.gms.ads.interstitial.InterstitialAd
+import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import java.util.*
 

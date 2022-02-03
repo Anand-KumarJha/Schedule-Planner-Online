@@ -7,18 +7,18 @@
 
     <ImageView
         android:id="@+id/logo_menu"
-        android:layout_width="180dp"
+        android:layout_width="200dp"
         android:layout_height="150dp"
         android:layout_marginStart="-30dp"
-        android:layout_marginTop="35dp"
-        android:src="@drawable/robo" />
+        android:layout_marginTop="40dp"
+        android:src="@drawable/logo" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@+id/logo_menu"
-        android:layout_marginStart="20dp"
-        android:layout_marginTop="15dp"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="10dp"
         android:text="@string/schedule_planner"
         android:textColor="@color/white"
         android:textSize="19dp" />
